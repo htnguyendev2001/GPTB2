@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.htanh.appvk.HtavkApplication
+import com.htanh.appvk.ui.applySystemBarInsets
 import com.htanh.appvk.R
 import com.htanh.appvk.domain.learning.LearningQuestion
 import com.htanh.appvk.domain.learning.QuestionOption
@@ -38,6 +39,7 @@ class LearningActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_learning)
+        applySystemBarInsets(findViewById(R.id.learningRoot))
 
         titleView = findViewById(R.id.tvLearningTitle)
         syncStatusView = findViewById(R.id.tvSyncStatus)
