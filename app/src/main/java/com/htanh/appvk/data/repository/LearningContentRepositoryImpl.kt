@@ -17,6 +17,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 class LearningContentRepositoryImpl(
@@ -24,6 +26,7 @@ class LearningContentRepositoryImpl(
     private val remoteDataSource: LearningContentRemoteDataSource
 ) : LearningContentRepository {
     private val dao = database.learningContentDao()
+    private val syncMutex = Mutex()
 
     override fun observeCatalog(): Flow<LearningCatalog> {
         val hierarchy = combine(
@@ -53,7 +56,8 @@ class LearningContentRepositoryImpl(
         }
     }
 
-    override suspend fun refresh(): LearningContentSyncResult = withContext(Dispatchers.IO) {
+    override suspend fun refresh(): LearningContentSyncResult = syncMutex.withLock {
+        withContext(Dispatchers.IO) {
         try {
             val catalog = remoteDataSource.fetchCatalog()
             val syncedAt = System.currentTimeMillis()
@@ -80,6 +84,7 @@ class LearningContentRepositoryImpl(
                 error.message ?: "Unable to save the learning content cache.",
                 LearningContentSyncResult.Category.STORAGE
             )
+        }
         }
     }
 
