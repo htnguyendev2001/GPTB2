@@ -27,8 +27,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "LEARNING_CONTENT_SPREADSHEET_ID", "\\"${sheetsSpreadsheetId}\\""
-        buildConfigField "String", "GOOGLE_SHEETS_API_KEY", "\\"${sheetsApiKey}\\""
+        buildConfigField "String", "LEARNING_CONTENT_SPREADSHEET_ID", "\"${sheetsSpreadsheetId}\""
+        buildConfigField "String", "GOOGLE_SHEETS_API_KEY", "\"${sheetsApiKey}\""
     }
 
     buildFeatures {
