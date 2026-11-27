@@ -1,11 +1,16 @@
 package com.htanh.appvk.data.remote.sheets
 
 import android.net.Uri
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -21,6 +26,7 @@ class GoogleSheetsRemoteDataSource(
     private val apiKey: String
 ) : LearningContentRemoteDataSource {
     override suspend fun fetchCatalog(): com.htanh.appvk.domain.learning.LearningCatalog = withContext(Dispatchers.IO) {
+        currentCoroutineContext().ensureActive()
         if (spreadsheetId.isBlank() || apiKey.isBlank()) {
             throw LearningContentSyncException(
                 LearningContentSyncException.Category.CONFIGURATION,
@@ -56,8 +62,16 @@ class GoogleSheetsRemoteDataSource(
             connection.readTimeout = 20_000
             connection.setRequestProperty("Accept", "application/json")
             val status = connection.responseCode
+            val contentLength = connection.contentLengthLong
+            if (contentLength > MAX_RESPONSE_BYTES) {
+                throw LearningContentSyncException(
+                    LearningContentSyncException.Category.INVALID_CONTENT,
+                    "Google Sheets response exceeds the 10 MiB limit."
+                )
+            }
             val stream = if (status in 200..299) connection.inputStream else connection.errorStream
-            val responseBody = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
+            val responseBody = stream?.use { it.readUtf8Bounded(MAX_RESPONSE_BYTES) }.orEmpty()
+            currentCoroutineContext().ensureActive()
 
             if (status !in 200..299) {
                 val category = when {
@@ -99,6 +113,8 @@ class GoogleSheetsRemoteDataSource(
             }
         } catch (error: LearningContentSyncException) {
             throw error
+        } catch (error: CancellationException) {
+            throw error
         } catch (error: IOException) {
             throw LearningContentSyncException(LearningContentSyncException.Category.NETWORK, "Unable to reach Google Sheets.")
         } catch (error: Exception) {
@@ -106,6 +122,29 @@ class GoogleSheetsRemoteDataSource(
         } finally {
             connection.disconnect()
         }
+    }
+
+    companion object {
+        const val MAX_RESPONSE_BYTES = 10L * 1024L * 1024L
+    }
+
+    private fun InputStream.readUtf8Bounded(maxBytes: Long): String {
+        val output = ByteArrayOutputStream()
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var total = 0L
+        while (true) {
+            val count = read(buffer)
+            if (count < 0) break
+            total += count
+            if (total > maxBytes) {
+                throw LearningContentSyncException(
+                    LearningContentSyncException.Category.INVALID_CONTENT,
+                    "Google Sheets response exceeds the 10 MiB limit."
+                )
+            }
+            output.write(buffer, 0, count)
+        }
+        return output.toString(Charsets.UTF_8.name())
     }
 
     private fun JSONArray.toStringRows(): List<List<String>> = buildList {
