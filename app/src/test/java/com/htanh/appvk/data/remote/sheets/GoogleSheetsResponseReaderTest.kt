@@ -16,7 +16,7 @@ class GoogleSheetsResponseReaderTest {
 
     @Test
     fun acceptsResponseExactlyAtByteLimit() {
-        val result = ByteArrayInputStream(byteArrayOf(1, 2, 3, 4))
+        val result = ByteArrayInputStream("abcd".toByteArray(Charsets.UTF_8))
             .readUtf8Bounded(4)
 
         assertEquals(4, result.toByteArray(Charsets.UTF_8).size)
@@ -25,7 +25,7 @@ class GoogleSheetsResponseReaderTest {
     @Test
     fun rejectsResponseLargerThanByteLimit() {
         val error = assertThrows(LearningContentSyncException::class.java) {
-            ByteArrayInputStream(byteArrayOf(1, 2, 3, 4, 5)).readUtf8Bounded(4)
+            ByteArrayInputStream("abcde".toByteArray(Charsets.UTF_8)).readUtf8Bounded(4)
         }
 
         assertEquals(LearningContentSyncException.Category.INVALID_CONTENT, error.category)
