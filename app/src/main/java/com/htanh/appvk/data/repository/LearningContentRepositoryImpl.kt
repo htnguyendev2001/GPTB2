@@ -58,33 +58,36 @@ class LearningContentRepositoryImpl(
 
     override suspend fun refresh(): LearningContentSyncResult = syncMutex.withLock {
         withContext(Dispatchers.IO) {
-        try {
-            val catalog = remoteDataSource.fetchCatalog()
-            val syncedAt = System.currentTimeMillis()
-            database.withTransaction {
-                dao.clearOptions()
-                dao.clearQuestions()
-                dao.clearTopics()
-                dao.clearChapters()
-                dao.clearSubjects()
-                dao.insertSubjects(catalog.subjects.map { it.toEntity() })
-                dao.insertChapters(catalog.chapters.map { it.toEntity() })
-                dao.insertTopics(catalog.topics.map { it.toEntity() })
-                dao.insertQuestions(catalog.questions.map { it.toEntity() })
-                dao.insertOptions(catalog.options.map { it.toEntity() })
-                dao.upsertMetadata(SyncMetadataEntity(LAST_SUCCESSFUL_SYNC_KEY, syncedAt.toString()))
+            try {
+                val catalog = remoteDataSource.fetchCatalog()
+                val syncedAt = System.currentTimeMillis()
+                database.withTransaction {
+                    dao.clearOptions()
+                    dao.clearQuestions()
+                    dao.clearTopics()
+                    dao.clearChapters()
+                    dao.clearSubjects()
+                    dao.insertSubjects(catalog.subjects.map { it.toEntity() })
+                    dao.insertChapters(catalog.chapters.map { it.toEntity() })
+                    dao.insertTopics(catalog.topics.map { it.toEntity() })
+                    dao.insertQuestions(catalog.questions.map { it.toEntity() })
+                    dao.insertOptions(catalog.options.map { it.toEntity() })
+                    dao.upsertMetadata(SyncMetadataEntity(LAST_SUCCESSFUL_SYNC_KEY, syncedAt.toString()))
+                }
+                LearningContentSyncResult.Success(syncedAt)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: LearningContentSyncException) {
+                LearningContentSyncResult.Failure(
+                    error.message ?: "Learning content sync failed.",
+                    error.category.toRepositoryCategory()
+                )
+            } catch (error: Exception) {
+                LearningContentSyncResult.Failure(
+                    error.message ?: "Unable to save the learning content cache.",
+                    LearningContentSyncResult.Category.STORAGE
+                )
             }
-            LearningContentSyncResult.Success(syncedAt)
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (error: LearningContentSyncException) {
-            LearningContentSyncResult.Failure(error.message ?: "Learning content sync failed.", error.category.toRepositoryCategory())
-        } catch (error: Exception) {
-            LearningContentSyncResult.Failure(
-                error.message ?: "Unable to save the learning content cache.",
-                LearningContentSyncResult.Category.STORAGE
-            )
-        }
         }
     }
 
