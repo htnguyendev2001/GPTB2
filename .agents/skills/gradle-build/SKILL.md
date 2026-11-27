@@ -1,9 +1,9 @@
 ---
 name: gradle-build
-description: Maintain and troubleshoot the HTAVk Gradle build, Kotlin Android plugin, Android Gradle Plugin, wrapper, SDK configuration and dependencies.
+description: Maintain and troubleshoot the HTVA Vk Gradle build, Kotlin Android plugin, Android Gradle Plugin, wrapper, SDK configuration and dependencies.
 ---
 
-# Gradle Build Skill — HTAVk
+# Gradle Build Skill — HTVA Vk
 
 ## Project toolchain
 

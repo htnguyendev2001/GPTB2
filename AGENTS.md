@@ -1,12 +1,12 @@
-# AI Agent Instructions — HTAVk
+# AI Agent Instructions — HTVA Vk
 
-These instructions apply to the entire HTAVk repository.
+These instructions apply to the entire HTVA Vk repository.
 
 ## Project identity
 
-- App name: HTAVk.
+- App name: HTVA Vk.
 - Application ID and Gradle namespace: `com.htanh.appvk`.
-- Related but separate app HTA Ck uses `com.htanh.appck`. Never swap them.
+- Related but separate app HTVA Ck uses `com.htanh.appck`. Never swap them.
 - App module: `:app`.
 - Language: **Kotlin only** for application, unit-test and instrumentation-test source.
 - UI: Android XML resources in the current baseline.
@@ -40,7 +40,7 @@ These instructions apply to the entire HTAVk repository.
 
 ## Product scope and decisions
 
-HTAVk is a learning, practice and self-assessment app. Product areas include subjects, chapters, topics, questions, practice, exams, essay submissions/grading, study time, streaks, Reward Points, XP, levels, badges and missions.
+HTVA Vk is a learning, practice and self-assessment app. Product areas include subjects, chapters, topics, questions, practice, exams, essay submissions/grading, study time, streaks, Reward Points, XP, levels, badges and missions.
 
 Preserve these decisions unless the project owner explicitly changes them:
 

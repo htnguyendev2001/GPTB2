@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">HTAVk</string>
-    <string name="home_eyebrow">HTAVk • HỌC TẬP MỖI NGÀY</string>
+    <string name="app_name">HTVA Vk</string>
+    <string name="home_eyebrow">HTVA Vk • HỌC TẬP MỖI NGÀY</string>
     <string name="home_title">Chào mừng bạn trở lại!</string>
     <string name="home_description">Mỗi ngày một chút tiến bộ. Cùng xây dựng thói quen học tập và chinh phục mục tiêu của bạn.</string>
     <string name="home_section_title">KHÔNG GIAN HỌC TẬP</string>
@@ -13,6 +13,7 @@
     <string name="home_essay_description">Gửi bài làm và theo dõi kết quả chấm bài.</string>
     <string name="home_progress_title">Tiến độ học tập</string>
     <string name="home_progress_description">Theo dõi thời gian học, chuỗi ngày học và thành tích cá nhân.</string>
+    <string name="home_footer">HTVA Vk</string>
     <string name="home_footer">HTAVk</string>
     <string name="learning_subjects_title">Môn học</string>
     <string name="learning_chapters_title">Chương học</string>

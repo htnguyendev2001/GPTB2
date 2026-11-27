@@ -1,6 +1,6 @@
 ---
 name: android-testing
-description: Design, implement and execute Kotlin JVM unit tests and Android instrumentation tests for HTAVk.
+description: Design, implement and execute Kotlin JVM unit tests and Android instrumentation tests for HTVA Vk.
 ---
 
 # Android Testing Skill

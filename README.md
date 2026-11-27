@@ -1,14 +1,14 @@
-# HTAVk
+# HTVA Vk
 
-HTAVk is a native Android learning, practice and self-assessment application.
+HTVA Vk is a native Android learning, practice and self-assessment application.
 
 ## Application identity
 
 | Item | Value |
 |---|---|
-| App name | HTAVk |
+| App name | HTVA Vk |
 | Application ID | `com.htanh.appvk` |
-| Gradle project | `HTAVk` |
+| Gradle project | `HTVA Vk` |
 | Language | Kotlin |
 | UI | Android XML resources |
 | Compile SDK / Target SDK | 36 |
@@ -21,11 +21,11 @@ HTAVk is a native Android learning, practice and self-assessment application.
 
 **All Android application and test source code must be Kotlin.** Do not add Java source files. XML layouts and Android resources remain valid UI resources; Kotlin is the required programming language.
 
-HTAVk is separate from HTA Ck. HTAVk must use `com.htanh.appvk`; HTA Ck uses `com.htanh.appck`. Never interchange these IDs.
+HTVA Vk is separate from HTVA Ck. HTVA Vk must use `com.htanh.appvk`; HTVA Ck uses `com.htanh.appck`. Never interchange these IDs.
 
 ## Product scope
 
-HTAVk supports learning and self-assessment. The planned product areas include:
+HTVA Vk supports learning and self-assessment. The planned product areas include:
 
 - Learning content organized by subjects, chapters and topics.
 - Question banks and multiple-choice questions.
@@ -51,7 +51,7 @@ Before implementing or changing data contracts, inspect the latest approved prod
 
 ## Current implementation status
 
-The repository was originally a small Java/XML equation-solver starter. The Kotlin foundation branch migrates application and test source to Kotlin, updates the application identity, and replaces the demo screen with an initial HTAVk dashboard shell.
+The repository was originally a small Java/XML equation-solver starter. The Kotlin foundation branch migrates application and test source to Kotlin, updates the application identity, and replaces the demo screen with an initial HTVA Vk dashboard shell.
 
 The learning-content vertical slice is implemented on the `feat/learning-content-pipeline` branch: Google Sheets API v4 read-only batch fetch, header-based Kotlin parsing and validation, transactional Room snapshot cache, Flow-backed repository/ViewModel, and XML navigation from subjects to chapters, topics and questions. Live sync requires the public spreadsheet and restricted API key to be configured as described in [Google Sheets setup](docs/setup/GOOGLE_SHEETS_SETUP.md). Build/runtime validation is tracked in the feature PR. Authentication, Firebase user data, practice sessions, exams, essay submissions/grading and rewards remain separate work items.
 
