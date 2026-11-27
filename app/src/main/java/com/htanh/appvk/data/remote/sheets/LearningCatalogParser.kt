@@ -101,7 +101,8 @@ object LearningCatalogParser {
             iconUrl = table.value(row, "icon_url"),
             coverImageUrl = table.valueAny(row, "image_url", "cover_image_url"),
             sortOrder = row.intValue(table, "sort_order", SUBJECTS, index, 0),
-            isActive = row.booleanValue(table, "is_active", SUBJECTS, index, true)
+            isActive = row.booleanValue(table, "is_active", SUBJECTS, index, true),
+            iconName = table.value(row, "icon").takeIf(String::isNotBlank)
         )
     }
 
@@ -155,7 +156,9 @@ object LearningCatalogParser {
             explanation = table.value(row, "explanation"),
             points = points,
             sortOrder = row.intValue(table, "sort_order", QUESTIONS, index, 0),
-            isActive = row.booleanValue(table, "is_active", QUESTIONS, index, true)
+            isActive = row.booleanValue(table, "is_active", QUESTIONS, index, true),
+            imageUrl = table.value(row, "image_url").takeIf(String::isNotBlank),
+            estimatedTimeSeconds = row.optionalNonNegativeInt(table, "estimated_time_seconds", QUESTIONS, index)
         )
     }
 
@@ -166,7 +169,9 @@ object LearningCatalogParser {
             questionId = row.required(table, "question_id", QUESTION_OPTIONS, index),
             text = row.requiredAny(table, QUESTION_OPTIONS, index, "content", "option_text"),
             isCorrect = row.booleanValue(table, "is_correct", QUESTION_OPTIONS, index, false, required = true),
-            sortOrder = row.intValue(table, "sort_order", QUESTION_OPTIONS, index, 0)
+            sortOrder = row.intValue(table, "sort_order", QUESTION_OPTIONS, index, 0),
+            label = table.value(row, "option_label").takeIf(String::isNotBlank),
+            imageUrl = table.value(row, "image_url").takeIf(String::isNotBlank)
         )
     }
 
@@ -203,6 +208,17 @@ object LearningCatalogParser {
         val value = table.value(this, header)
         return if (value.isBlank()) default else value.toIntOrNull()
             ?: invalid(tab, "row ${index + 2}", "'$header' must be an integer")
+    }
+
+    private fun List<String>.optionalNonNegativeInt(
+        table: SheetTable, header: String, tab: String, index: Int
+    ): Int? {
+        val value = table.value(this, header)
+        if (value.isBlank()) return null
+        val parsed = value.toIntOrNull()
+            ?: invalid(tab, "row ${index + 2}", "'$header' must be an integer")
+        if (parsed < 0) invalid(tab, "row ${index + 2}", "'$header' must be non-negative")
+        return parsed
     }
 
     private fun List<String>.booleanValue(
