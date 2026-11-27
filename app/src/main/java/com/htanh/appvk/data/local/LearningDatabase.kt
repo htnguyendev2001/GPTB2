@@ -18,7 +18,7 @@ import com.htanh.appvk.data.local.entity.TopicEntity
         QuestionOptionEntity::class,
         SyncMetadataEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class LearningDatabase : RoomDatabase() {
