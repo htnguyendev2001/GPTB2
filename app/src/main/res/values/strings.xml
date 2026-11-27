@@ -33,6 +33,9 @@
     <string name="practice_answer_incorrect">Chưa chính xác.</string>
     <string name="practice_explanation">Giải thích: %1$s</string>
     <string name="practice_correct_answer">Đáp án đúng: %1$s</string>
+    <string name="practice_question_image">Ảnh minh họa câu hỏi</string>
+    <string name="practice_option_image">Ảnh minh họa đáp án</string>
+    <string name="practice_option_image_description">Ảnh minh họa đáp án %1$s</string>
     <string name="practice_essay_hint">Nhập nội dung bài tự luận của bạn…</string>
     <string name="practice_essay_draft_notice">Bài làm hiện chỉ là bản nháp trên màn hình. Chức năng lưu và nộp bài sẽ được bổ sung khi tích hợp hồ sơ người dùng.</string>
 </resources>
