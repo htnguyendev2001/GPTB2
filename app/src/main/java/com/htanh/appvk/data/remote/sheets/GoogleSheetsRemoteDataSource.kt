@@ -19,8 +19,8 @@ class LearningContentSyncException(
 class GoogleSheetsRemoteDataSource(
     private val spreadsheetId: String,
     private val apiKey: String
-) {
-    suspend fun fetchCatalog(): com.htanh.appvk.domain.learning.LearningCatalog = withContext(Dispatchers.IO) {
+) : LearningContentRemoteDataSource {
+    override suspend fun fetchCatalog(): com.htanh.appvk.domain.learning.LearningCatalog = withContext(Dispatchers.IO) {
         if (spreadsheetId.isBlank() || apiKey.isBlank()) {
             throw LearningContentSyncException(
                 LearningContentSyncException.Category.CONFIGURATION,
