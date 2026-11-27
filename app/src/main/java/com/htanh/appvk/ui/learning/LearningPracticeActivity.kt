@@ -8,6 +8,7 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -83,7 +84,7 @@ class LearningPracticeActivity : AppCompatActivity() {
         questionMetadata.text = getString(
             R.string.practice_question_metadata,
             question.difficulty.name,
-            question.points
+            question.points.toString()
         )
         questionContent.text = question.content
         feedback.visibility = View.GONE
@@ -116,7 +117,7 @@ class LearningPracticeActivity : AppCompatActivity() {
         val selectedId = optionsGroup.findViewById<RadioButton>(optionsGroup.checkedRadioButtonId)?.tag as? String
         if (selectedId == null) {
             feedback.text = getString(R.string.practice_select_option)
-            feedback.setTextColor(getColor(R.color.practice_feedback_error))
+            feedback.setTextColor(ContextCompat.getColor(this, R.color.practice_feedback_error))
             feedback.visibility = View.VISIBLE
             return
         }
@@ -138,7 +139,12 @@ class LearningPracticeActivity : AppCompatActivity() {
             }
         }
         feedback.text = message
-        feedback.setTextColor(getColor(if (correct) R.color.practice_feedback_success else R.color.practice_feedback_error))
+        feedback.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (correct) R.color.practice_feedback_success else R.color.practice_feedback_error
+            )
+        )
         feedback.visibility = View.VISIBLE
     }
 
