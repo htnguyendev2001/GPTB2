@@ -183,3 +183,15 @@ The parser/domain/Room pipeline now preserves the remaining first-slice workbook
 Room schema is now version 2. The application registers migration 1 -> 2, adding nullable columns to the existing tables so previously cached catalogue rows remain intact. Repository mapping now carries these fields in both directions. The practice screen displays option labels and estimated duration; remote image rendering is not yet implemented, but image URLs are retained in the cache rather than discarded. Instrumentation coverage now includes both metadata round-trip through the Room repository and migration of a populated v1 database.
 
 Automated verification is pending for the new commits. Do not treat this section as a successful CI or live Google Sheets sync report until the corresponding workflow completes and the spreadsheet's Viewer permission/API access are verified.
+
+
+## 12. Learning media rendering progress (2026-11-27)
+
+The practice screen now renders question images and per-option images from the URLs retained in Room. The lightweight Kotlin image loader:
+- accepts HTTPS URLs only;
+- uses connection/read timeouts and does not follow redirects;
+- requires an image content type;
+- rejects downloads larger than 5 MiB (including unknown-length responses after streaming);
+- downsamples decoded bitmaps to a maximum 1280-pixel dimension and keeps a bounded in-memory LRU cache.
+
+HTTP URLs and redirect-based image hosts are intentionally not loaded by this implementation. The app does not persist image files to disk; image bytes are fetched again after process restart. Visual rendering and device/network behavior still require emulator/manual verification.
