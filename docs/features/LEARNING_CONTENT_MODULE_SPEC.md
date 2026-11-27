@@ -30,6 +30,7 @@ The workbook contract also reserves tabs for app configuration, exams, exam-ques
 - No essay submission or grading records in the public spreadsheet.
 - No custom backend, Cloud Functions or anti-cheat service.
 - No Firebase dependency for public catalogue content.
+- Project Owner approved public read-only spreadsheet access on 2026-11-27: Anyone with the link — Viewer. This supersedes the older private-sharing instruction in the uploaded workbook GUIDE.
 - No Compose migration; UI remains XML with Kotlin controllers/ViewModels.
 
 Essay prompts may be represented as public questions. A learner's essay response and its grading workflow belong to the user-specific Firebase data flow, not this public workbook.
@@ -320,6 +321,7 @@ User-facing messages should be understandable and must not expose API keys or ra
 
 ### Specification / workbook
 
+- [ ] One spreadsheet is shared as Anyone with the link — Viewer and contains only public learning content.
 - [ ] One public spreadsheet contains all five required tabs with the exact v1 headers.
 - [ ] Reserved tabs are documented but are not required for the first sync.
 - [ ] Essay attempts and grading are not stored in public Sheets.
