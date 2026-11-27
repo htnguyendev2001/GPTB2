@@ -1,0 +1,9 @@
+# Copy this file to local.properties in the repository root.
+# Keep local.properties untracked; it is ignored by Git.
+#
+# Google Spreadsheet ID from the approved HTVA Vk learning workbook:
+htavk.sheets.spreadsheetId=1E65nmazXqOSANbg5_OXH0O_DpL2KTZfIyfBOT0VFFuU
+
+# Required: create a restricted Google API key with Google Sheets API enabled.
+# Restrict it to Android package com.htanh.appvk and the signing certificate(s).
+htavk.sheets.apiKey=PASTE_YOUR_RESTRICTED_GOOGLE_API_KEY_HERE
