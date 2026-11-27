@@ -55,6 +55,16 @@ Preserve these decisions unless the project owner explicitly changes them:
 
 These are product/architecture decisions, not proof that every integration is currently implemented. Inspect actual code and approved specifications before changing contracts or claiming functionality.
 
+## Learning-content implementation
+
+- Read `docs/features/LEARNING_CONTENT_MODULE_SPEC.md` before changing the public learning-content data contract.
+- Keep the public Google Spreadsheet read-only from the app and use one batch read for the five required tabs.
+- Parse by header name; validate all rows and relationships before persisting.
+- Replace the Room snapshot in one transaction only after a complete valid remote response.
+- Keep cached content visible while refreshing and after network/validation failures.
+- Do not create question-version history or move essay submissions/grading into public Sheets.
+- Configure spreadsheet ID/API key only through ignored local.properties; never commit them.
+
 ## Android engineering
 
 - Kotlin is mandatory; use idiomatic Kotlin and avoid Java interop unless required by an Android API.
