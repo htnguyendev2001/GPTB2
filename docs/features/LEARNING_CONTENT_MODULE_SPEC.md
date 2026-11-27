@@ -54,7 +54,7 @@ The repository did not contain a versioned learning-workbook schema when this sp
 
 ## 3. Workbook contract
 
-One spreadsheet contains the following tabs. Tab names and header names are case-sensitive in the workbook contract; the parser trims whitespace and matches header names case-insensitively for resilience.
+One spreadsheet contains the following tabs. Tab names are case-sensitive. Header names are trimmed and matched case-insensitively by the parser.
 
 ### 3.1 Required tabs for v1 implementation
 
@@ -151,7 +151,7 @@ Essay attempts, essay submissions, grading comments and grading outcomes are del
 - If validation fails, do not partially write data. Keep the previous Room snapshot intact and report a sync error.
 - Blank optional values use documented defaults. Blank required values are errors.
 - Boolean values accepted by the parser: true/false, 1/0, yes/no (case-insensitive).
-- Decimal values use a dot as decimal separator. Thousands separators are not accepted.
+- Decimal values use a dot as decimal separator. Thousands separators are not accepted; set the spreadsheet locale to United States (or another locale that renders decimals with a dot).
 - Sort order is ascending, then display name as a stable secondary sort.
 
 ## 5. Remote transport and security
@@ -203,7 +203,7 @@ Typed Kotlin models:
 - QuestionOption(id, questionId, text, isCorrect, sortOrder)
 - LearningCatalog(subjects, chapters, topics, questions, options)
 
-The source `updated_at` value is informational and is not a version-history mechanism. v1 stores only the most recent valid snapshot.
+Room 2.7.2 is pinned for this implementation because the app retains minSdk 21; Room 2.8.x raises the minimum Android API to 23. The source `updated_at` value is informational and is not a version-history mechanism. v1 stores only the most recent valid snapshot.
 
 ## 7. Data pipeline
 
