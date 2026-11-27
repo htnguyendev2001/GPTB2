@@ -40,7 +40,7 @@ class GoogleSheetsRemoteDataSource(
             .appendPath(spreadsheetId)
             .appendEncodedPath("values:batchGet")
             .appendQueryParameter("majorDimension", "ROWS")
-            .appendQueryParameter("valueRenderOption", "FORMATTED_VALUE")
+            .appendQueryParameter("valueRenderOption", "UNFORMATTED_VALUE")
             .appendQueryParameter("key", apiKey)
         ranges.forEach { builder.appendQueryParameter("ranges", it) }
 
