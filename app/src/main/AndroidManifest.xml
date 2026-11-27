@@ -16,6 +16,10 @@
         android:theme="@style/Theme.HTAVk"
         tools:targetApi="31">
         <activity
+            android:name=".ui.learning.LearningPracticeActivity"
+            android:exported="false"
+            android:label="@string/practice_question_title" />
+        <activity
             android:name=".ui.learning.LearningActivity"
             android:exported="false"
             android:label="@string/learning_subjects_title" />
