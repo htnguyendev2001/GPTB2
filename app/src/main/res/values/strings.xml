@@ -6,6 +6,7 @@
     <string name="home_section_title">KHÔNG GIAN HỌC TẬP</string>
     <string name="home_learning_title">Kho học tập</string>
     <string name="home_learning_description">Khám phá môn học, chương và chủ đề được sắp xếp rõ ràng.</string>
+    <string name="home_learning_action">Mở kho học tập</string>
     <string name="home_practice_title">Luyện tập và kiểm tra</string>
     <string name="home_practice_description">Ôn tập câu hỏi trắc nghiệm và thực hiện các bài kiểm tra.</string>
     <string name="home_essay_title">Bài tự luận</string>
@@ -13,4 +14,13 @@
     <string name="home_progress_title">Tiến độ học tập</string>
     <string name="home_progress_description">Theo dõi thời gian học, chuỗi ngày học và thành tích cá nhân.</string>
     <string name="home_footer">HTAVk</string>
+    <string name="learning_subjects_title">Môn học</string>
+    <string name="learning_chapters_title">Chương học</string>
+    <string name="learning_topics_title">Chủ đề</string>
+    <string name="learning_questions_title">Câu hỏi</string>
+    <string name="learning_back">Quay lại</string>
+    <string name="learning_refresh">Làm mới</string>
+    <string name="learning_sync_not_started">Chưa đồng bộ học liệu</string>
+    <string name="learning_last_sync">Cập nhật gần nhất: %1$s</string>
+    <string name="learning_empty">Chưa có nội dung ở mục này.</string>
 </resources>
