@@ -96,7 +96,7 @@ class LearningPracticeActivity : AppCompatActivity() {
         ) + question.estimatedTimeSeconds?.let { " • ${it}s" }.orEmpty()
         questionContent.text = question.content
         LearningImageLoader.load(questionImage, question.imageUrl, lifecycleScope)
-        questionImage.visibility = if (question.imageUrl.isNullOrBlank()) View.GONE else View.VISIBLE
+        questionImage.visibility = if (LearningImageLoader.supportsUrl(question.imageUrl)) View.VISIBLE else View.GONE
         feedback.visibility = View.GONE
 
         val isEssay = question.type == QuestionType.ESSAY
@@ -126,7 +126,7 @@ class LearningPracticeActivity : AppCompatActivity() {
                 }
                 optionRow.addView(radioButton)
 
-                if (!option.imageUrl.isNullOrBlank()) {
+                if (LearningImageLoader.supportsUrl(option.imageUrl)) {
                     val optionImage = ImageView(this).apply {
                         contentDescription = option.label?.let { getString(R.string.practice_option_image_description, it) }
                             ?: getString(R.string.practice_option_image)
