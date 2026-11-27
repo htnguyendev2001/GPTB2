@@ -128,25 +128,6 @@ class GoogleSheetsRemoteDataSource(
         const val MAX_RESPONSE_BYTES = 10L * 1024L * 1024L
     }
 
-    private fun InputStream.readUtf8Bounded(maxBytes: Long): String {
-        val output = ByteArrayOutputStream()
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-        var total = 0L
-        while (true) {
-            val count = read(buffer)
-            if (count < 0) break
-            total += count
-            if (total > maxBytes) {
-                throw LearningContentSyncException(
-                    LearningContentSyncException.Category.INVALID_CONTENT,
-                    "Google Sheets response exceeds the 10 MiB limit."
-                )
-            }
-            output.write(buffer, 0, count)
-        }
-        return output.toString(Charsets.UTF_8.name())
-    }
-
     private fun JSONArray.toStringRows(): List<List<String>> = buildList {
         for (rowIndex in 0 until length()) {
             val row = optJSONArray(rowIndex) ?: JSONArray()
@@ -159,3 +140,23 @@ class GoogleSheetsRemoteDataSource(
         }
     }
 }
+
+internal fun InputStream.readUtf8Bounded(maxBytes: Long): String {
+    val output = ByteArrayOutputStream()
+    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+    var total = 0L
+    while (true) {
+        val count = read(buffer)
+        if (count < 0) break
+        total += count
+        if (total > maxBytes) {
+            throw LearningContentSyncException(
+                LearningContentSyncException.Category.INVALID_CONTENT,
+                "Google Sheets response exceeds the 10 MiB limit."
+            )
+        }
+        output.write(buffer, 0, count)
+    }
+    return output.toString(Charsets.UTF_8.name())
+}
+
