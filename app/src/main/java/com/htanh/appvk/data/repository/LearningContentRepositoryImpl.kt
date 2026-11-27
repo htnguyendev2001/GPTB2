@@ -25,22 +25,25 @@ class LearningContentRepositoryImpl(
 ) : LearningContentRepository {
     private val dao = database.learningContentDao()
 
-    override fun observeCatalog(): Flow<LearningCatalog> = combine(
-        dao.observeSubjects(),
-        dao.observeChapters(),
-        dao.observeTopics(),
-        dao.observeQuestions(),
-        dao.observeOptions(),
-        dao.observeMetadata(LAST_SUCCESSFUL_SYNC_KEY)
-    ) { subjects, chapters, topics, questions, options, syncTimestamp ->
-        LearningCatalog(
-            subjects = subjects.map { it.toDomain() },
-            chapters = chapters.map { it.toDomain() },
-            topics = topics.map { it.toDomain() },
-            questions = questions.map { it.toDomain() },
-            options = options.map { it.toDomain() },
-            lastSuccessfulSyncAt = syncTimestamp?.toLongOrNull()
-        )
+    override fun observeCatalog(): Flow<LearningCatalog> {
+        val cachedCatalog = combine(
+            dao.observeSubjects(),
+            dao.observeChapters(),
+            dao.observeTopics(),
+            dao.observeQuestions(),
+            dao.observeOptions()
+        ) { subjects, chapters, topics, questions, options ->
+            LearningCatalog(
+                subjects = subjects.map { it.toDomain() },
+                chapters = chapters.map { it.toDomain() },
+                topics = topics.map { it.toDomain() },
+                questions = questions.map { it.toDomain() },
+                options = options.map { it.toDomain() }
+            )
+        }
+        return combine(cachedCatalog, dao.observeMetadata(LAST_SUCCESSFUL_SYNC_KEY)) { catalog, syncTimestamp ->
+            catalog.copy(lastSuccessfulSyncAt = syncTimestamp?.toLongOrNull())
+        }
     }
 
     override suspend fun refresh(): LearningContentSyncResult = withContext(Dispatchers.IO) {
