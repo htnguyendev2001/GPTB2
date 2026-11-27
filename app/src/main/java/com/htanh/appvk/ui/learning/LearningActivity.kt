@@ -1,10 +1,7 @@
 package com.htanh.appvk.ui.learning
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import android.util.TypedValue
-import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
@@ -14,11 +11,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.card.MaterialCardView
 import com.htanh.appvk.HtavkApplication
 import com.htanh.appvk.R
 import com.htanh.appvk.domain.learning.LearningQuestion
+import com.htanh.appvk.domain.learning.QuestionOption
 import com.htanh.appvk.domain.learning.QuestionType
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -30,9 +29,11 @@ class LearningActivity : AppCompatActivity() {
     private lateinit var titleView: TextView
     private lateinit var syncStatusView: TextView
     private lateinit var errorView: TextView
+    private lateinit var emptyView: TextView
     private lateinit var progressBar: ProgressBar
-    private lateinit var itemsContainer: LinearLayout
+    private lateinit var itemsList: RecyclerView
     private lateinit var backButton: MaterialButton
+    private lateinit var listAdapter: LearningListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,12 +42,25 @@ class LearningActivity : AppCompatActivity() {
         titleView = findViewById(R.id.tvLearningTitle)
         syncStatusView = findViewById(R.id.tvSyncStatus)
         errorView = findViewById(R.id.tvLearningError)
+        emptyView = findViewById(R.id.tvLearningEmpty)
         progressBar = findViewById(R.id.learningProgress)
-        itemsContainer = findViewById(R.id.learningItemsContainer)
+        itemsList = findViewById(R.id.learningItemsList)
         backButton = findViewById(R.id.btnLearningBack)
 
         val repository = (application as HtavkApplication).learningContentRepository
         viewModel = ViewModelProvider(this, LearningViewModelFactory(repository))[LearningViewModel::class.java]
+
+        listAdapter = LearningListAdapter { id ->
+            when (viewModel.state.value.level) {
+                LearningLevel.SUBJECTS -> viewModel.selectSubject(id)
+                LearningLevel.CHAPTERS -> viewModel.selectChapter(id)
+                LearningLevel.TOPICS -> viewModel.selectTopic(id)
+                LearningLevel.QUESTIONS -> Unit
+            }
+        }
+        itemsList.layoutManager = LinearLayoutManager(this)
+        itemsList.adapter = listAdapter
+        itemsList.setHasFixedSize(false)
 
         findViewById<MaterialButton>(R.id.btnLearningRefresh).setOnClickListener { viewModel.refresh() }
         backButton.setOnClickListener { viewModel.navigateBack() }
@@ -95,125 +109,68 @@ class LearningActivity : AppCompatActivity() {
         errorView.text = state.errorMessage.orEmpty()
         errorView.visibility = if (state.errorMessage.isNullOrBlank()) View.GONE else View.VISIBLE
 
-        itemsContainer.removeAllViews()
-        when (state.level) {
-            LearningLevel.SUBJECTS -> {
-                val items = catalog.subjects.filter { it.isActive }
-                items.forEach { subject ->
-                    addItem(subject.name, subject.description, "${catalog.chapters.count { it.subjectId == subject.id && it.isActive }} chương") {
-                        viewModel.selectSubject(subject.id)
-                    }
+        val rows = when (state.level) {
+            LearningLevel.SUBJECTS -> catalog.subjects
+                .filter { it.isActive }
+                .map { subject ->
+                    LearningListItem(
+                        id = subject.id,
+                        title = subject.name,
+                        description = subject.description,
+                        metadata = "${catalog.chapters.count { it.subjectId == subject.id && it.isActive }} chương",
+                        isNavigable = true
+                    )
                 }
-                showEmptyIfNeeded(items.isEmpty())
-            }
-            LearningLevel.CHAPTERS -> {
-                val items = catalog.chapters.filter { it.isActive && it.subjectId == state.selectedSubjectId }
-                items.forEach { chapter ->
-                    addItem(chapter.name, chapter.description, "${catalog.topics.count { it.chapterId == chapter.id && it.isActive }} chủ đề") {
-                        viewModel.selectChapter(chapter.id)
-                    }
+            LearningLevel.CHAPTERS -> catalog.chapters
+                .filter { it.isActive && it.subjectId == state.selectedSubjectId }
+                .map { chapter ->
+                    LearningListItem(
+                        id = chapter.id,
+                        title = chapter.name,
+                        description = chapter.description,
+                        metadata = "${catalog.topics.count { it.chapterId == chapter.id && it.isActive }} chủ đề",
+                        isNavigable = true
+                    )
                 }
-                showEmptyIfNeeded(items.isEmpty())
-            }
-            LearningLevel.TOPICS -> {
-                val items = catalog.topics.filter { it.isActive && it.chapterId == state.selectedChapterId }
-                items.forEach { topic ->
-                    addItem(topic.name, topic.description, "${catalog.questions.count { it.topicId == topic.id && it.isActive }} câu hỏi") {
-                        viewModel.selectTopic(topic.id)
-                    }
+            LearningLevel.TOPICS -> catalog.topics
+                .filter { it.isActive && it.chapterId == state.selectedChapterId }
+                .map { topic ->
+                    LearningListItem(
+                        id = topic.id,
+                        title = topic.name,
+                        description = topic.description,
+                        metadata = "${catalog.questions.count { it.topicId == topic.id && it.isActive }} câu hỏi",
+                        isNavigable = true
+                    )
                 }
-                showEmptyIfNeeded(items.isEmpty())
-            }
-            LearningLevel.QUESTIONS -> {
-                val items = catalog.questions.filter { it.isActive && it.topicId == state.selectedTopicId }
-                items.forEach { question -> addQuestion(question, catalog.options.filter { it.questionId == question.id }) }
-                showEmptyIfNeeded(items.isEmpty())
-            }
+            LearningLevel.QUESTIONS -> catalog.questions
+                .filter { it.isActive && it.topicId == state.selectedTopicId }
+                .map { question ->
+                    question.toListItem(catalog.options.filter { it.questionId == question.id })
+                }
         }
+
+        listAdapter.submitList(rows)
+        emptyView.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
+        itemsList.visibility = if (rows.isEmpty()) View.GONE else View.VISIBLE
     }
 
-    private fun addItem(title: String, description: String, metadata: String, onClick: () -> Unit) {
-        val card = MaterialCardView(this).apply {
-            radius = dp(14).toFloat()
-            cardElevation = dp(1).toFloat()
-            strokeWidth = dp(1)
-            setStrokeColor(ColorStateListCompat.stroke())
-            setCardBackgroundColor(Color.WHITE)
-            isClickable = true
-            isFocusable = true
-            setOnClickListener { onClick() }
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(10) }
+    private fun LearningQuestion.toListItem(options: List<QuestionOption>): LearningListItem {
+        val optionText = options.joinToString("\n") { option ->
+            (if (option.isCorrect) "✓ " else "• ") + option.text
         }
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(14), dp(16), dp(14))
-        }
-        content.addView(textView(title, 17f, true, "#172033"))
-        if (description.isNotBlank()) {
-            content.addView(textView(description, 14f, false, "#667085").apply {
-                setPadding(0, dp(5), 0, 0)
-            })
-        }
-        content.addView(textView(metadata, 12f, true, "#5263C5").apply {
-            setPadding(0, dp(9), 0, 0)
-        })
-        card.addView(content)
-        itemsContainer.addView(card)
+        val description = listOf(optionText, explanation)
+            .filter { it.isNotBlank() }
+            .joinToString("\n\n")
+        val typeLabel = if (type == QuestionType.MCQ) "Trắc nghiệm" else "Tự luận"
+        return LearningListItem(
+            id = id,
+            title = content,
+            description = description,
+            metadata = "$typeLabel • ${difficulty.name} • $points điểm",
+            isNavigable = false
+        )
     }
-
-    private fun addQuestion(question: LearningQuestion, options: List<com.htanh.appvk.domain.learning.QuestionOption>) {
-        val card = MaterialCardView(this).apply {
-            radius = dp(14).toFloat()
-            cardElevation = dp(1).toFloat()
-            strokeWidth = dp(1)
-            setStrokeColor(ColorStateListCompat.stroke())
-            setCardBackgroundColor(Color.WHITE)
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = dp(10) }
-        }
-        val content = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(14), dp(16), dp(14))
-        }
-        val typeLabel = if (question.type == QuestionType.MCQ) "Trắc nghiệm" else "Tự luận"
-        content.addView(textView("$typeLabel • ${question.difficulty.name} • ${question.points} điểm", 12f, true, "#5263C5"))
-        content.addView(textView(question.content, 16f, true, "#172033").apply {
-            setPadding(0, dp(8), 0, dp(6))
-        })
-        options.forEach { option ->
-            val prefix = if (option.isCorrect) "✓ " else "• "
-            content.addView(textView(prefix + option.text, 14f, option.isCorrect, if (option.isCorrect) "#16834A" else "#475467").apply {
-                setPadding(dp(4), dp(3), 0, dp(3))
-            })
-        }
-        if (question.explanation.isNotBlank()) {
-            content.addView(textView(question.explanation, 13f, false, "#667085").apply {
-                setPadding(0, dp(8), 0, 0)
-            })
-        }
-        card.addView(content)
-        itemsContainer.addView(card)
-    }
-
-    private fun showEmptyIfNeeded(isEmpty: Boolean) {
-        if (isEmpty) {
-            itemsContainer.addView(textView(getString(R.string.learning_empty), 14f, false, "#667085"))
-        }
-    }
-
-    private fun textView(text: String, size: Float, bold: Boolean, color: String) = TextView(this).apply {
-        this.text = text
-        setTextSize(TypedValue.COMPLEX_UNIT_SP, size)
-        setTextColor(Color.parseColor(color))
-        if (bold) setTypeface(typeface, android.graphics.Typeface.BOLD)
-    }
-
-    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     private class LearningViewModelFactory(
         private val repository: com.htanh.appvk.data.repository.LearningContentRepository
@@ -225,9 +182,5 @@ class LearningActivity : AppCompatActivity() {
             }
             throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }
-    }
-
-    private object ColorStateListCompat {
-        fun stroke() = android.content.res.ColorStateList.valueOf(Color.parseColor("#E8EBF2"))
     }
 }
