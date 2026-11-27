@@ -1,9 +1,9 @@
 ---
 name: android-development
-description: Implement and review native Android features in HTAVk using Kotlin and Android XML resources, including Activities, lifecycle, permissions, accessibility and API compatibility.
+description: Implement and review native Android features in HTVA Vk using Kotlin and Android XML resources, including Activities, lifecycle, permissions, accessibility and API compatibility.
 ---
 
-# Android Development Skill — HTAVk
+# Android Development Skill — HTVA Vk
 
 ## Before changing code
 
@@ -25,7 +25,7 @@ description: Implement and review native Android features in HTAVk using Kotlin 
 - Keep exported components explicit and validate external input.
 - Guard APIs newer than minSdk 21.
 
-## HTAVk-specific product constraints
+## HTVA Vk-specific product constraints
 
 - Learning content is sourced from public Google Sheets.
 - Firebase Auth, Firestore and Storage are used for user-specific data/services.

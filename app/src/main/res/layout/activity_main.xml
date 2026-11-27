@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F7FB"
+    android:background="@color/brand_background"
     android:fillViewport="true">
 
     <LinearLayout
@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/home_eyebrow"
-            android:textColor="#5263C5"
+            android:textColor="@color/brand_primary_dark"
             android:textSize="12sp"
             android:textStyle="bold"
             android:letterSpacing="0.08" />
@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/home_title"
-            android:textColor="#172033"
+            android:textColor="@color/brand_text"
             android:textSize="28sp"
             android:textStyle="bold" />
 
@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/home_description"
-            android:textColor="#667085"
+            android:textColor="@color/brand_text_muted"
             android:textSize="15sp"
             android:lineSpacingExtra="3dp" />
 
@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
             android:text="@string/home_section_title"
-            android:textColor="#667085"
+            android:textColor="@color/brand_text_muted"
             android:textSize="12sp"
             android:textStyle="bold"
             android:letterSpacing="0.08" />
@@ -57,10 +57,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFFFFF"
+            app:cardBackgroundColor="@color/brand_surface"
             app:cardCornerRadius="16dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E8EBF2"
+            app:strokeColor="@color/brand_outline"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -73,7 +73,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/home_learning_title"
-                    android:textColor="#172033"
+                    android:textColor="@color/brand_text"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -82,7 +82,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="@string/home_learning_description"
-                    android:textColor="#667085"
+                    android:textColor="@color/brand_text_muted"
                     android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -91,10 +91,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFFFFF"
+            app:cardBackgroundColor="@color/brand_surface"
             app:cardCornerRadius="16dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E8EBF2"
+            app:strokeColor="@color/brand_outline"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -107,7 +107,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/home_practice_title"
-                    android:textColor="#172033"
+                    android:textColor="@color/brand_text"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -116,7 +116,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="@string/home_practice_description"
-                    android:textColor="#667085"
+                    android:textColor="@color/brand_text_muted"
                     android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -125,10 +125,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFFFFF"
+            app:cardBackgroundColor="@color/brand_surface"
             app:cardCornerRadius="16dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E8EBF2"
+            app:strokeColor="@color/brand_outline"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -141,7 +141,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/home_essay_title"
-                    android:textColor="#172033"
+                    android:textColor="@color/brand_text"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -150,7 +150,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="@string/home_essay_description"
-                    android:textColor="#667085"
+                    android:textColor="@color/brand_text_muted"
                     android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -159,10 +159,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#FFFFFF"
+            app:cardBackgroundColor="@color/brand_surface"
             app:cardCornerRadius="16dp"
             app:cardElevation="1dp"
-            app:strokeColor="#E8EBF2"
+            app:strokeColor="@color/brand_outline"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -175,7 +175,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/home_progress_title"
-                    android:textColor="#172033"
+                    android:textColor="@color/brand_text"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -184,7 +184,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="@string/home_progress_description"
-                    android:textColor="#667085"
+                    android:textColor="@color/brand_text_muted"
                     android:textSize="14sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -195,7 +195,7 @@
             android:layout_marginTop="20dp"
             android:gravity="center"
             android:text="@string/home_footer"
-            android:textColor="#98A2B3"
+            android:textColor="@color/brand_text_muted"
             android:textSize="12sp" />
 
     </LinearLayout>
