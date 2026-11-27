@@ -67,3 +67,5 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: ./gradlew connectedDebugAndroidTest
+      - name: Compile instrumentation test APK
+        run: ./gradlew assembleDebugAndroidTest
