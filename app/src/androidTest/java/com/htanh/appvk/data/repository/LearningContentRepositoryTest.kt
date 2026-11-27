@@ -6,6 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.htanh.appvk.data.local.LearningDatabase
 import com.htanh.appvk.data.remote.sheets.LearningContentRemoteDataSource
+import com.htanh.appvk.data.remote.sheets.LearningContentSyncException
 import com.htanh.appvk.domain.learning.Chapter
 import com.htanh.appvk.domain.learning.LearningCatalog
 import com.htanh.appvk.domain.learning.Subject
@@ -51,7 +52,7 @@ class LearningContentRepositoryTest {
         var shouldFail: Boolean = false
 
         override suspend fun fetchCatalog(): LearningCatalog {
-            if (shouldFail) error("Simulated network failure")
+            if (shouldFail) throw LearningContentSyncException(LearningContentSyncException.Category.NETWORK, "Simulated network failure.")
             return catalog
         }
     }
