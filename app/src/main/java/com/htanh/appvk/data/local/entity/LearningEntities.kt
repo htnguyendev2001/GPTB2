@@ -13,7 +13,8 @@ data class SubjectEntity(
     val iconUrl: String,
     val coverImageUrl: String,
     val sortOrder: Int,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val iconName: String? = null
 )
 
 @Entity(
@@ -79,7 +80,9 @@ data class LearningQuestionEntity(
     val explanation: String,
     val points: Double,
     val sortOrder: Int,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val imageUrl: String? = null,
+    val estimatedTimeSeconds: Int? = null
 )
 
 @Entity(
@@ -99,7 +102,9 @@ data class QuestionOptionEntity(
     val questionId: String,
     val text: String,
     val isCorrect: Boolean,
-    val sortOrder: Int
+    val sortOrder: Int,
+    val label: String? = null,
+    val imageUrl: String? = null
 )
 
 @Entity(tableName = "sync_metadata")
