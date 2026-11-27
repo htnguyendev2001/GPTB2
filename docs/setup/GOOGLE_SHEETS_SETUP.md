@@ -31,10 +31,10 @@ The API key is included in the APK because this is a public read-only client int
 
 ## 3. Configure local.properties
 
-Open the repository root `local.properties` (Android Studio creates this file and it is already ignored by Git). Preserve the existing `sdk.dir` line and add:
+Copy `local.properties.example` to `local.properties` in the repository root. Android Studio may already have created this file; if so, preserve its existing `sdk.dir` line and add/update the two properties below. The real `local.properties` is ignored by Git and must stay untracked. The spreadsheet ID is prefilled in the example from the project workbook URL; you must replace the API-key placeholder with your own restricted key:
 
 ```properties
-htavk.sheets.spreadsheetId=YOUR_SPREADSHEET_ID
+htavk.sheets.spreadsheetId=1E65nmazXqOSANbg5_OXH0O_DpL2KTZfIyfBOT0VFFuU
 htavk.sheets.apiKey=YOUR_RESTRICTED_API_KEY
 ```
 
