@@ -18,11 +18,8 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.htanh.appvk.HtavkApplication
 import com.htanh.appvk.R
-import com.htanh.appvk.domain.learning.Chapter
 import com.htanh.appvk.domain.learning.LearningQuestion
 import com.htanh.appvk.domain.learning.QuestionType
-import com.htanh.appvk.domain.learning.Subject
-import com.htanh.appvk.domain.learning.Topic
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
