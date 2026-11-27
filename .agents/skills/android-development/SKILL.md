@@ -1,43 +1,56 @@
 ---
 name: android-development
-description: Implement and review native Android features in this Java and XML application, including Activities, resources, manifests, permissions, lifecycle, accessibility, and API compatibility.
+description: Implement and review native Android features in HTAVk using Kotlin and Android XML resources, including Activities, lifecycle, permissions, accessibility and API compatibility.
 ---
 
-# Android Development Skill
+# Android Development Skill — HTAVk
 
 ## Before changing code
 
-- Read the relevant Activity / class, layout XML, manifest, styles, strings, and tests.
+- Read the relevant Kotlin classes, XML layouts, manifest, styles, strings, tests and product specifications.
 - Identify supported API range (minSdk 21) and target API (36).
-- Preserve the existing Java + XML approach unless migration is explicitly requested.
+- Kotlin is mandatory for all app and test source; do not add Java files.
+- Keep the existing XML UI approach unless Jetpack Compose is explicitly approved.
 
 ## Implementation principles
 
-- Keep Activities focused on UI coordination; move reusable logic into focused classes.
-- Respect Activity / Fragment lifecycle and avoid leaking Context or View references.
-- Perform network, disk, and expensive work off the main thread.
-- Use Android resources for strings, colors, dimensions, and themes.
-- Add content descriptions and meaningful labels; check touch targets and contrast.
-- Request only permissions required by the feature and explain each permission.
-- Keep exported components explicit; validate intent filters and externally supplied input.
-- Guard APIs newer than minSdk 21 with version checks or AndroidX compatibility APIs.
-- Avoid logging tokens, credentials, personal information, or sensitive data.
+- Use idiomatic Kotlin and null-safe APIs.
+- Keep Activities focused on UI coordination; place business rules in testable Kotlin classes.
+- Respect Activity/Fragment lifecycle; use lifecycle-aware coroutine scopes when asynchronous work is needed.
+- Inject dispatchers where useful and keep disk/network work off the main thread.
+- Avoid retaining Activity, View or Context references in long-lived objects.
+- Use Android resources for user-visible strings, dimensions, colors and themes.
+- Add content descriptions and meaningful labels; check touch targets, contrast and font scaling.
+- Request only permissions required by the feature.
+- Keep exported components explicit and validate external input.
+- Guard APIs newer than minSdk 21.
+
+## HTAVk-specific product constraints
+
+- Learning content is sourced from public Google Sheets.
+- Firebase Auth, Firestore and Storage are used for user-specific data/services.
+- Room is the offline cache.
+- Do not add a custom backend or Cloud Functions.
+- Scope personal data by authenticated Firebase UID.
+- MCQ answer visibility is public by product decision; no anti-cheat feature is required.
+- Essay submissions are graded by teachers in Firebase Console.
+- Streak and reward progression are calculated on Android and must have deterministic tests.
+
+Verify these decisions against current approved specs before altering data contracts.
 
 ## Android 16 / API 36 checklist
 
-- Validate edge-to-edge rendering, insets, status/navigation bars, and gesture navigation.
-- Check layouts on small screens, large screens, and different font scales.
+- Validate edge-to-edge rendering, insets, status/navigation bars and gesture navigation.
+- Check small/large screens and different font scales.
 - Verify runtime permission flows and settings return paths.
-- Review platform behavior changes that apply to targetSdk 36.
+- Review targetSdk 36 behavior changes.
 - Test on API 36 emulator/device; compilation alone is insufficient.
 
 ## Validation
-
-Run:
 
 ```bash
 ./gradlew testDebugUnitTest
 ./gradlew assembleDebug
 ```
 
-Run `./gradlew connectedDebugAndroidTest` when a device is available. Report commands that could not be run and why.
+Run connected tests when a device is available. Report commands that could not be run and why.
