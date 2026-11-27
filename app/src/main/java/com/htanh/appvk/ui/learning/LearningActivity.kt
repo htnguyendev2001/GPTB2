@@ -1,5 +1,6 @@
 package com.htanh.appvk.ui.learning
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
@@ -15,11 +16,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.htanh.appvk.HtavkApplication
-import com.htanh.appvk.ui.applySystemBarInsets
 import com.htanh.appvk.R
 import com.htanh.appvk.domain.learning.LearningQuestion
-import com.htanh.appvk.domain.learning.QuestionOption
-import com.htanh.appvk.domain.learning.QuestionType
+import com.htanh.appvk.ui.applySystemBarInsets
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -57,7 +56,10 @@ class LearningActivity : AppCompatActivity() {
                 LearningLevel.SUBJECTS -> viewModel.selectSubject(id)
                 LearningLevel.CHAPTERS -> viewModel.selectChapter(id)
                 LearningLevel.TOPICS -> viewModel.selectTopic(id)
-                LearningLevel.QUESTIONS -> Unit
+                LearningLevel.QUESTIONS -> startActivity(
+                    Intent(this, LearningPracticeActivity::class.java)
+                        .putExtra(LearningPracticeActivity.EXTRA_QUESTION_ID, id)
+                )
             }
         }
         itemsList.layoutManager = LinearLayoutManager(this)
@@ -147,9 +149,7 @@ class LearningActivity : AppCompatActivity() {
                 }
             LearningLevel.QUESTIONS -> catalog.questions
                 .filter { it.isActive && it.topicId == state.selectedTopicId }
-                .map { question ->
-                    question.toListItem(catalog.options.filter { it.questionId == question.id })
-                }
+                .map { question -> question.toListItem(catalog.options.count { it.questionId == question.id }) }
         }
 
         listAdapter.submitList(rows)
@@ -157,20 +157,18 @@ class LearningActivity : AppCompatActivity() {
         itemsList.visibility = if (rows.isEmpty()) View.GONE else View.VISIBLE
     }
 
-    private fun LearningQuestion.toListItem(options: List<QuestionOption>): LearningListItem {
-        val optionText = options.joinToString("\n") { option ->
-            (if (option.isCorrect) "✓ " else "• ") + option.text
+    private fun LearningQuestion.toListItem(optionCount: Int): LearningListItem {
+        val typeLabel = if (type == com.htanh.appvk.domain.learning.QuestionType.MCQ) {
+            "Trắc nghiệm"
+        } else {
+            "Tự luận"
         }
-        val description = listOf(optionText, explanation)
-            .filter { it.isNotBlank() }
-            .joinToString("\n\n")
-        val typeLabel = if (type == QuestionType.MCQ) "Trắc nghiệm" else "Tự luận"
         return LearningListItem(
             id = id,
             title = content,
-            description = description,
-            metadata = "$typeLabel • ${difficulty.name} • $points điểm",
-            isNavigable = false
+            description = "",
+            metadata = "$typeLabel • $optionCount lựa chọn • ${difficulty.name} • $points điểm",
+            isNavigable = true
         )
     }
 
