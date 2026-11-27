@@ -101,7 +101,7 @@ class LearningContentRepositoryImpl(
     }
 
     private fun SubjectEntity.toDomain() = com.htanh.appvk.domain.learning.Subject(
-        id, name, description, iconUrl, coverImageUrl, sortOrder, isActive
+        id, name, description, iconUrl, coverImageUrl, sortOrder, isActive, iconName
     )
 
     private fun ChapterEntity.toDomain() = com.htanh.appvk.domain.learning.Chapter(
@@ -121,15 +121,17 @@ class LearningContentRepositoryImpl(
         explanation,
         points,
         sortOrder,
-        isActive
+        isActive,
+        imageUrl,
+        estimatedTimeSeconds
     )
 
     private fun QuestionOptionEntity.toDomain() = com.htanh.appvk.domain.learning.QuestionOption(
-        id, questionId, text, isCorrect, sortOrder
+        id, questionId, text, isCorrect, sortOrder, label, imageUrl
     )
 
     private fun com.htanh.appvk.domain.learning.Subject.toEntity() =
-        SubjectEntity(id, name, description, iconUrl, coverImageUrl, sortOrder, isActive)
+        SubjectEntity(id, name, description, iconUrl, coverImageUrl, sortOrder, isActive, iconName)
 
     private fun com.htanh.appvk.domain.learning.Chapter.toEntity() =
         ChapterEntity(id, subjectId, name, description, sortOrder, isActive)
@@ -138,10 +140,10 @@ class LearningContentRepositoryImpl(
         TopicEntity(id, chapterId, name, description, sortOrder, isActive)
 
     private fun com.htanh.appvk.domain.learning.LearningQuestion.toEntity() =
-        LearningQuestionEntity(id, topicId, type.name, difficulty.name, content, explanation, points, sortOrder, isActive)
+        LearningQuestionEntity(id, topicId, type.name, difficulty.name, content, explanation, points, sortOrder, isActive, imageUrl, estimatedTimeSeconds)
 
     private fun com.htanh.appvk.domain.learning.QuestionOption.toEntity() =
-        QuestionOptionEntity(id, questionId, text, isCorrect, sortOrder)
+        QuestionOptionEntity(id, questionId, text, isCorrect, sortOrder, label, imageUrl)
 
     companion object {
         private const val LAST_SUCCESSFUL_SYNC_KEY = "last_successful_sync_at"
