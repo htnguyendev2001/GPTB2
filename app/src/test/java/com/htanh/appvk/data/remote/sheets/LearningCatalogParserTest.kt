@@ -151,6 +151,41 @@ class LearningCatalogParserTest {
         LearningCatalogParser.parse(tables)
     }
 
+    @Test(expected = CatalogValidationException::class)
+    fun rejectsWorkbookQuestionWhoseRedundantChapterIdConflictsWithTopic() {
+        val tables = mapOf(
+            LearningCatalogParser.SUBJECTS to table(
+                LearningCatalogParser.SUBJECTS,
+                listOf(listOf("subject_id", "name"), listOf("SUBJ_MATH", "Toán"))
+            ),
+            LearningCatalogParser.CHAPTERS to table(
+                LearningCatalogParser.CHAPTERS,
+                listOf(listOf("chapter_id", "subject_id", "name"), listOf("CH_01", "SUBJ_MATH", "Chương 1"))
+            ),
+            LearningCatalogParser.TOPICS to table(
+                LearningCatalogParser.TOPICS,
+                listOf(listOf("topic_id", "chapter_id", "name"), listOf("TOP_01", "CH_01", "Chủ đề"))
+            ),
+            LearningCatalogParser.QUESTIONS to table(
+                LearningCatalogParser.QUESTIONS,
+                listOf(
+                    listOf("question_id", "subject_id", "chapter_id", "topic_id", "question_type", "content"),
+                    listOf("Q_01", "SUBJ_MATH", "CH_WRONG", "TOP_01", "MCQ", "Câu hỏi")
+                )
+            ),
+            LearningCatalogParser.QUESTION_OPTIONS to table(
+                LearningCatalogParser.QUESTION_OPTIONS,
+                listOf(
+                    listOf("option_id", "question_id", "content", "is_correct"),
+                    listOf("OPT_A", "Q_01", "A", "TRUE"),
+                    listOf("OPT_B", "Q_01", "B", "FALSE")
+                )
+            )
+        )
+
+        LearningCatalogParser.parse(tables)
+    }
+
     @Test
     fun parsesBooleanAliases() {
         val tables = validTables()
