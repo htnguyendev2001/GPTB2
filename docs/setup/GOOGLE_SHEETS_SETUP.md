@@ -12,7 +12,7 @@ Create one spreadsheet and add these five required tabs:
 - `QUESTIONS`
 - `QUESTION_OPTIONS`
 
-Use the exact v1 column headers in [LEARNING_CONTENT_MODULE_SPEC.md](../features/LEARNING_CONTENT_MODULE_SPEC.md). Set the spreadsheet locale to United States (or a locale that formats decimal values with a dot). Keep the header row at row 1. The parser matches headers by name, so columns can be reordered, but do not rename required headers.
+Use the exact v1 column headers in [LEARNING_CONTENT_MODULE_SPEC.md](../features/LEARNING_CONTENT_MODULE_SPEC.md). Keep the header row at row 1. The parser matches headers by name, so columns can be reordered, but do not rename required headers. The app requests `UNFORMATTED_VALUE` from Sheets so numeric cells are returned as raw numbers rather than locale-formatted display strings; enter numeric fields as numeric spreadsheet values, not localized text.
 
 <strong>Approved Project Owner decision (2026-11-27):</strong> share the workbook as **Anyone with the link — Viewer**. The Android app reads it directly; it must never write to Sheets. This explicitly supersedes the older private-sharing instruction in the uploaded workbook GUIDE, which should be updated by the spreadsheet owner.
 
@@ -59,7 +59,7 @@ Open HTAVk, choose **Mở kho học tập**, and use **Làm mới** to retry a s
 - Every chapter references a subject, every topic references a chapter, every question references a topic and every option references a question.
 - Every MCQ has at least two options and exactly one correct option.
 - Essay questions have no option rows.
-- `sort_order` is an integer; `points` is a non-negative decimal using a dot.
+- `sort_order` is a non-negative or negative integer as needed for ordering; `max_score` is a non-negative numeric cell. Do not store numeric values as localized text.
 - `is_active` accepts TRUE/FALSE, 1/0 or YES/NO; blank defaults to TRUE except `QUESTION_OPTIONS.is_correct`, which is required.
 - Keep essay attempts and grades out of this public spreadsheet.
 
