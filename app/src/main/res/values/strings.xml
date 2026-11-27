@@ -1,3 +1,14 @@
 <resources>
-    <string name="app_name">GPTB2</string>
+    <string name="app_name">HTAVk</string>
+    <string name="home_eyebrow">HTAVk • HỌC TẬP MỖI NGÀY</string>
+    <string name="home_title">Chào mừng bạn trở lại!</string>
+    <string name="home_description">Mỗi ngày một chút tiến bộ. Cùng xây dựng thói quen học tập và chinh phục mục tiêu của bạn.</string>
+    <string name="home_learning_title">Kho học tập</string>
+    <string name="home_learning_description">Khám phá môn học, chương và chủ đề được sắp xếp rõ ràng.</string>
+    <string name="home_practice_title">Luyện tập và kiểm tra</string>
+    <string name="home_practice_description">Ôn tập câu hỏi trắc nghiệm và thực hiện các bài kiểm tra.</string>
+    <string name="home_essay_title">Bài tự luận</string>
+    <string name="home_essay_description">Gửi bài làm và theo dõi kết quả chấm bài.</string>
+    <string name="home_progress_title">Tiến độ học tập</string>
+    <string name="home_progress_description">Theo dõi thời gian học, chuỗi ngày học và thành tích cá nhân.</string>
 </resources>
