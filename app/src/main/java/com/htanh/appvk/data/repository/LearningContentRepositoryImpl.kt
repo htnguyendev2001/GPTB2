@@ -8,7 +8,7 @@ import com.htanh.appvk.data.local.entity.QuestionOptionEntity
 import com.htanh.appvk.data.local.entity.SubjectEntity
 import com.htanh.appvk.data.local.entity.SyncMetadataEntity
 import com.htanh.appvk.data.local.entity.TopicEntity
-import com.htanh.appvk.data.remote.sheets.GoogleSheetsRemoteDataSource
+import com.htanh.appvk.data.remote.sheets.LearningContentRemoteDataSource
 import com.htanh.appvk.data.remote.sheets.LearningContentSyncException
 import com.htanh.appvk.domain.learning.LearningCatalog
 import com.htanh.appvk.domain.learning.QuestionDifficulty
@@ -21,7 +21,7 @@ import kotlinx.coroutines.withContext
 
 class LearningContentRepositoryImpl(
     private val database: LearningDatabase,
-    private val remoteDataSource: GoogleSheetsRemoteDataSource
+    private val remoteDataSource: LearningContentRemoteDataSource
 ) : LearningContentRepository {
     private val dao = database.learningContentDao()
 
