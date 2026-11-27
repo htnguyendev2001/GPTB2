@@ -3,9 +3,12 @@ package com.htanh.appvk.ui.learning
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.RadioButton
-import android.widget.RadioGroup
 import android.widget.TextView
+import android.view.Gravity
+import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -26,7 +29,8 @@ class LearningPracticeActivity : AppCompatActivity() {
     private lateinit var questionTitle: TextView
     private lateinit var questionMetadata: TextView
     private lateinit var questionContent: TextView
-    private lateinit var optionsGroup: RadioGroup
+    private lateinit var questionImage: ImageView
+    private lateinit var optionsGroup: LinearLayout
     private lateinit var essayAnswer: EditText
     private lateinit var essayNotice: TextView
     private lateinit var checkButton: MaterialButton
@@ -34,6 +38,7 @@ class LearningPracticeActivity : AppCompatActivity() {
     private var renderedQuestionId: String? = null
     private var currentQuestion: LearningQuestion? = null
     private var currentOptions: List<QuestionOption> = emptyList()
+    private var selectedOptionId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +48,7 @@ class LearningPracticeActivity : AppCompatActivity() {
         questionTitle = findViewById(R.id.tvPracticeTitle)
         questionMetadata = findViewById(R.id.tvPracticeMetadata)
         questionContent = findViewById(R.id.tvPracticeContent)
+        questionImage = findViewById(R.id.ivPracticeQuestionImage)
         optionsGroup = findViewById(R.id.practiceOptions)
         essayAnswer = findViewById(R.id.etEssayAnswer)
         essayNotice = findViewById(R.id.tvEssayNotice)
@@ -89,6 +95,8 @@ class LearningPracticeActivity : AppCompatActivity() {
             question.points.toString()
         ) + question.estimatedTimeSeconds?.let { " • ${it}s" }.orEmpty()
         questionContent.text = question.content
+        LearningImageLoader.load(questionImage, question.imageUrl, lifecycleScope)
+        questionImage.visibility = if (question.imageUrl.isNullOrBlank()) View.GONE else View.VISIBLE
         feedback.visibility = View.GONE
 
         val isEssay = question.type == QuestionType.ESSAY
@@ -99,16 +107,39 @@ class LearningPracticeActivity : AppCompatActivity() {
 
         if (renderedQuestionId != question.id) {
             renderedQuestionId = question.id
+            selectedOptionId = null
             optionsGroup.removeAllViews()
             options.forEach { option ->
+                val optionRow = LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    setPadding(8, 4, 8, 4)
+                }
                 val radioButton = RadioButton(this).apply {
                     id = View.generateViewId()
                     tag = option.id
                     text = listOfNotNull(option.label?.takeIf(String::isNotBlank), option.text).joinToString(". ")
                     textSize = 16f
-                    setPadding(8, 16, 8, 16)
+                    setPadding(8, 12, 8, 12)
+                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                    setOnClickListener { selectOption(option.id) }
                 }
-                optionsGroup.addView(radioButton)
+                optionRow.addView(radioButton)
+
+                if (!option.imageUrl.isNullOrBlank()) {
+                    val optionImage = ImageView(this).apply {
+                        contentDescription = option.label?.let { getString(R.string.practice_option_image_description, it) }
+                            ?: getString(R.string.practice_option_image)
+                        scaleType = ImageView.ScaleType.CENTER_CROP
+                        layoutParams = LinearLayout.LayoutParams(dp(88), dp(72)).apply {
+                            marginStart = dp(8)
+                        }
+                    }
+                    optionRow.addView(optionImage)
+                    LearningImageLoader.load(optionImage, option.imageUrl, lifecycleScope)
+                }
+                optionRow.setOnClickListener { selectOption(option.id) }
+                optionsGroup.addView(optionRow)
             }
             essayAnswer.text?.clear()
         }
@@ -116,7 +147,7 @@ class LearningPracticeActivity : AppCompatActivity() {
 
     private fun checkSelectedAnswer() {
         val question = currentQuestion ?: return
-        val selectedId = optionsGroup.findViewById<RadioButton>(optionsGroup.checkedRadioButtonId)?.tag as? String
+        val selectedId = selectedOptionId
         if (selectedId == null) {
             feedback.text = getString(R.string.practice_select_option)
             feedback.setTextColor(ContextCompat.getColor(this, R.color.practice_feedback_error))
@@ -157,10 +188,23 @@ class LearningPracticeActivity : AppCompatActivity() {
         questionContent.text = message
         questionMetadata.visibility = View.GONE
         optionsGroup.visibility = View.GONE
+        questionImage.visibility = View.GONE
         essayAnswer.visibility = View.GONE
         essayNotice.visibility = View.GONE
         checkButton.visibility = View.GONE
     }
+
+    private fun selectOption(optionId: String) {
+        selectedOptionId = optionId
+        for (index in 0 until optionsGroup.childCount) {
+            val row = optionsGroup.getChildAt(index) as? LinearLayout ?: continue
+            val radio = row.getChildAt(0) as? RadioButton ?: continue
+            radio.isChecked = radio.tag == optionId
+        }
+        feedback.visibility = View.GONE
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     companion object {
         const val EXTRA_QUESTION_ID = "com.htanh.appvk.extra.QUESTION_ID"
