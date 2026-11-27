@@ -43,3 +43,6 @@ jobs:
 
       - name: Assemble debug APK
         run: ./gradlew assembleDebug
+
+      - name: Compile instrumentation test APK
+        run: ./gradlew assembleDebugAndroidTest
