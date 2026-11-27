@@ -55,14 +55,14 @@ class LearningCatalogParserTest {
                 LearningCatalogParser.QUESTIONS,
                 listOf(
                     listOf("question_id", "subject_id", "chapter_id", "topic_id", "question_type", "difficulty", "content", "image_url", "explanation", "max_score", "estimated_time_seconds", "is_active", "sort_order"),
-                    listOf("Q_01", "SUBJ_MATH", "CH_01", "TOP_01", "MCQ", "EASY", "2 + 2 = ?", "", "Giải thích", "10", "30", "TRUE", "1")
+                    listOf("Q_01", "SUBJ_MATH", "CH_01", "TOP_01", "MCQ", "EASY", "2 + 2 = ?", "https://example.com/q.png", "Giải thích", "10", "30", "TRUE", "1")
                 )
             ),
             LearningCatalogParser.QUESTION_OPTIONS to table(
                 LearningCatalogParser.QUESTION_OPTIONS,
                 listOf(
                     listOf("option_id", "question_id", "option_label", "content", "image_url", "is_correct", "sort_order"),
-                    listOf("OPT_A", "Q_01", "A", "4", "", "TRUE", "1"),
+                    listOf("OPT_A", "Q_01", "A", "4", "https://example.com/a.png", "TRUE", "1"),
                     listOf("OPT_B", "Q_01", "B", "5", "", "FALSE", "2")
                 )
             )
@@ -70,9 +70,27 @@ class LearningCatalogParserTest {
 
         val catalog = LearningCatalogParser.parse(tables)
 
+        assertEquals("calculate", catalog.subjects.single().iconName)
         assertEquals("https://example.com/math.png", catalog.subjects.single().coverImageUrl)
         assertEquals(10.0, catalog.questions.single().points, 0.0)
+        assertEquals("https://example.com/q.png", catalog.questions.single().imageUrl)
+        assertEquals(30, catalog.questions.single().estimatedTimeSeconds)
         assertEquals("4", catalog.options.first { it.id == "OPT_A" }.text)
+        assertEquals("A", catalog.options.first { it.id == "OPT_A" }.label)
+        assertEquals("https://example.com/a.png", catalog.options.first { it.id == "OPT_A" }.imageUrl)
+    }
+
+    @Test(expected = CatalogValidationException::class)
+    fun rejectsNegativeEstimatedQuestionDuration() {
+        val tables = validTables().toMutableMap()
+        tables[LearningCatalogParser.QUESTIONS] = table(
+            LearningCatalogParser.QUESTIONS,
+            listOf(
+                listOf("question_id", "topic_id", "question_type", "content", "estimated_time_seconds"),
+                listOf("Q_01", "TOP_01", "MCQ", "2 + 2 = ?", "-5")
+            )
+        )
+        LearningCatalogParser.parse(tables)
     }
 
     @Test
