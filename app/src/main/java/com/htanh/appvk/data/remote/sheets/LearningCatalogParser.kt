@@ -15,7 +15,7 @@ object LearningCatalogParser {
         CHAPTERS to setOf("chapter_id", "subject_id", "name"),
         TOPICS to setOf("topic_id", "chapter_id", "name"),
         QUESTIONS to setOf("question_id", "topic_id", "question_type", "content"),
-        QUESTION_OPTIONS to setOf("option_id", "question_id", "option_text", "is_correct")
+        QUESTION_OPTIONS to setOf("option_id", "question_id", "is_correct")
     )
 
     fun parse(tables: Map<String, SheetTable>): LearningCatalog {
@@ -24,6 +24,9 @@ object LearningCatalogParser {
             throw CatalogValidationException("Missing required tabs: ${missingTabs.joinToString()}")
         }
         requiredHeaders.forEach { (tab, headers) -> tables.getValue(tab).requireHeaders(tab, headers) }
+        if (!tables.getValue(QUESTION_OPTIONS).hasAnyHeader("content", "option_text")) {
+            throw CatalogValidationException("QUESTION_OPTIONS is missing required headers: content (or option_text)")
+        }
 
         val subjects = parseSubjects(tables.getValue(SUBJECTS))
         val chapters = parseChapters(tables.getValue(CHAPTERS))
@@ -79,7 +82,7 @@ object LearningCatalogParser {
             name = row.required(table, "name", SUBJECTS, index),
             description = table.value(row, "description"),
             iconUrl = table.value(row, "icon_url"),
-            coverImageUrl = table.value(row, "cover_image_url"),
+            coverImageUrl = table.valueAny(row, "image_url", "cover_image_url"),
             sortOrder = row.intValue(table, "sort_order", SUBJECTS, index, 0),
             isActive = row.booleanValue(table, "is_active", SUBJECTS, index, true)
         )
@@ -122,7 +125,7 @@ object LearningCatalogParser {
             "HARD" -> QuestionDifficulty.HARD
             else -> invalid(QUESTIONS, "row ${index + 2}", "difficulty must be EASY, MEDIUM or HARD")
         }
-        val pointsText = table.value(row, "points")
+        val pointsText = table.valueAny(row, "max_score", "points")
         val points = if (pointsText.isBlank()) 1.0 else pointsText.toDoubleOrNull()
             ?: invalid(QUESTIONS, "row ${index + 2}", "points must be a decimal number")
         if (!points.isFinite() || points < 0.0) invalid(QUESTIONS, "row ${index + 2}", "points must be non-negative")
@@ -144,7 +147,7 @@ object LearningCatalogParser {
         QuestionOption(
             id = row.required(table, "option_id", QUESTION_OPTIONS, index),
             questionId = row.required(table, "question_id", QUESTION_OPTIONS, index),
-            text = row.required(table, "option_text", QUESTION_OPTIONS, index),
+            text = row.requiredAny(table, QUESTION_OPTIONS, index, "content", "option_text"),
             isCorrect = row.booleanValue(table, "is_correct", QUESTION_OPTIONS, index, false, required = true),
             sortOrder = row.intValue(table, "sort_order", QUESTION_OPTIONS, index, 0)
         )
@@ -159,6 +162,20 @@ object LearningCatalogParser {
         throw CatalogValidationException("$tab $row: $reason")
 
     private fun List<String>.isBlankRow() = all(String::isBlank)
+
+    private fun SheetTable.hasAnyHeader(vararg names: String): Boolean =
+        names.any { name -> headers.any { header -> header.equals(name, ignoreCase = true) } }
+
+    private fun SheetTable.valueAny(row: List<String>, vararg names: String): String =
+        names.firstNotNullOfOrNull { name ->
+            if (hasAnyHeader(name)) value(row, name).takeIf(String::isNotBlank) else null
+        }.orEmpty()
+
+    private fun List<String>.requiredAny(
+        table: SheetTable, tab: String, index: Int, vararg headers: String
+    ): String = table.valueAny(this, *headers).ifBlank {
+        invalid(tab, "row ${index + 2}", "required field '${headers.joinToString(" or ")}' is blank")
+    }
 
     private fun List<String>.required(table: SheetTable, header: String, tab: String, index: Int): String =
         table.value(this, header).ifBlank { invalid(tab, "row ${index + 2}", "required field '$header' is blank") }
