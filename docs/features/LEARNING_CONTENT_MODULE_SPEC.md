@@ -107,7 +107,7 @@ One spreadsheet contains the following tabs. Tab names are case-sensitive. Heade
 | question_type | Enum | Yes | MCQ or ESSAY |
 | difficulty | Enum | No | EASY, MEDIUM or HARD; defaults to MEDIUM |
 | content | String | Yes | Question prompt; plain text in v1 |
-| image_url | URL/String | No | Optional question image; preserved as LearningQuestion.imageUrl (rendering is pending) |
+| image_url | URL/String | No | Optional question image; preserved as LearningQuestion.imageUrl and rendered on the practice screen for HTTPS URLs |
 | explanation | String | No | Public explanation shown by the practice feature |
 | max_score | Decimal | No | Non-negative score value; mapped to the current points field, defaults to 1 |
 | estimated_time_seconds | Integer | No | Estimated duration; preserved as nullable LearningQuestion.estimatedTimeSeconds |
@@ -123,7 +123,7 @@ One spreadsheet contains the following tabs. Tab names are case-sensitive. Heade
 | question_id | String | Yes | Foreign key to QUESTIONS.question_id |
 | option_label | String | No | Display label such as A/B/C/D; preserved as QuestionOption.label |
 | content | String | Yes | Option text; parser also accepts the legacy option_text alias |
-| image_url | URL/String | No | Optional option image; preserved as QuestionOption.imageUrl (rendering is pending) |
+| image_url | URL/String | No | Optional option image; preserved as QuestionOption.imageUrl and rendered alongside the option for HTTPS URLs |
 | is_correct | Boolean | Yes | Public answer key |
 | sort_order | Integer | No | Display order; defaults to 0 |
 
@@ -158,14 +158,14 @@ Essay attempts, essay submissions, grading comments and grading outcomes are del
 - If validation fails, do not partially write data. Keep the previous Room snapshot intact and report a sync error.
 - Blank optional values use documented defaults. Blank required values are errors.
 - Boolean values accepted by the parser: true/false, 1/0, yes/no (case-insensitive).
-- Decimal values use a dot as decimal separator. Thousands separators are not accepted; set the spreadsheet locale to United States (or another locale that renders decimals with a dot).
+- Numeric fields should be stored as numeric spreadsheet cells, not localized text. The API requests unformatted values so display-locale decimal separators do not affect numeric parsing.
 - Sort order is ascending, then display name as a stable secondary sort.
 
 ## 5. Remote transport and security
 
 ### Transport
 
-Use Google Sheets API v4 read-only `spreadsheets.values:batchGet` over HTTPS. Fetch the five required ranges in one request:
+Use Google Sheets API v4 read-only `spreadsheets.values:batchGet` over HTTPS with `valueRenderOption=UNFORMATTED_VALUE` so numeric cells are parsed independently of spreadsheet display locale. Fetch the five required ranges in one request:
 
 - `SUBJECTS!A:Z`
 - `CHAPTERS!A:Z`
@@ -373,7 +373,7 @@ The learning catalogue now opens an individual practice screen when a learner se
 ### MCQ behavior
 
 - The question list shows the prompt, type, difficulty, points and option count only. It does not reveal option correctness or the explanation before the learner opens the question.
-- The practice screen renders the question options as a single-choice RadioGroup.
+- The practice screen renders the question options as a single-choice list of RadioButtons; selection is coordinated by the Activity.
 - The learner must select one option before checking the answer.
 - Answer evaluation is a pure Kotlin domain operation and is covered by JVM unit tests.
 - After checking, the screen reports whether the selection is correct. For an incorrect selection it shows the correct option; if an explanation exists, it is shown with the result.
@@ -394,9 +394,9 @@ The learning catalogue now opens an individual practice screen when a learner se
 - No answer attempt history, score aggregation, exam timer, submission API or Firestore write is included in this increment.
 
 
-Room schema version 2 adds nullable columns for the new workbook metadata through a registered 1-to-2 migration. The repository maps the added fields to and from Room. Remote image rendering remains a separate UI task; image URLs are retained in the local cache.
+Room schema version 2 adds nullable columns for the new workbook metadata through a registered 1-to-2 migration. The repository maps the added fields to and from Room. Question and option image URLs are retained in the local cache and rendered by the practice screen when they use HTTPS.
 
 
 ### Learning media rendering
 
-The question practice screen renders `QUESTIONS.image_url` below the question prompt and `QUESTION_OPTIONS.image_url` alongside its option. The Kotlin image loader accepts HTTPS URLs only, uses 10-second connect/read timeouts, rejects non-image responses and downloads over 5 MiB, downsamples to a maximum 1280-pixel dimension, and uses a bounded in-memory LRU cache. Redirects and HTTP URLs are not followed. Images are not persisted to disk, so they are downloaded again after process restart. Device/emulator verification remains required.
+The question practice screen renders `QUESTIONS.image_url` below the question prompt and `QUESTION_OPTIONS.image_url` alongside its option. The Kotlin image loader accepts HTTPS URLs only, uses 10-second connect/read timeouts, rejects non-image responses and downloads over 5 MiB, downsamples to a maximum 1280-pixel dimension, and uses a bounded in-memory LRU cache. Redirects and HTTP URLs are not followed. Images are not persisted to disk, so they are downloaded again after process restart. Device/emulator verification remains required. When a refreshed catalogue changes the current question or its options, the practice screen rebuilds the options and clears the stale selection; identical Room emissions do not discard the current feedback.
