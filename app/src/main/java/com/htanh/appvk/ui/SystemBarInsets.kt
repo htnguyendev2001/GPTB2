@@ -5,9 +5,16 @@ import android.view.View
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 fun Activity.applySystemBarInsets(root: View) {
     WindowCompat.setDecorFitsSystemWindows(window, false)
+    window.statusBarColor = android.graphics.Color.TRANSPARENT
+    window.navigationBarColor = android.graphics.Color.TRANSPARENT
+    WindowInsetsControllerCompat(window, root).apply {
+        isAppearanceLightStatusBars = true
+        isAppearanceLightNavigationBars = true
+    }
 
     val initialLeft = root.paddingLeft
     val initialTop = root.paddingTop
