@@ -14,7 +14,9 @@ Create one spreadsheet and add these five required tabs:
 
 Use the exact v1 column headers in [LEARNING_CONTENT_MODULE_SPEC.md](../features/LEARNING_CONTENT_MODULE_SPEC.md). Set the spreadsheet locale to United States (or a locale that formats decimal values with a dot). Keep the header row at row 1. The parser matches headers by name, so columns can be reordered, but do not rename required headers.
 
-The workbook must be shared as **Anyone with the link — Viewer** for this public read-only integration. Do not put private user records, essay submissions, grading results, credentials or API keys in this workbook.
+<strong>Approved Project Owner decision (2026-11-27):</strong> share the workbook as **Anyone with the link — Viewer**. The Android app reads it directly; it must never write to Sheets. This explicitly supersedes the older private-sharing instruction in the uploaded workbook GUIDE, which should be updated by the spreadsheet owner.
+
+Treat every cell in this workbook as public information. Do not put private user records, essay submissions, grading results, credentials, API keys, tokens or personal data in it. Essay attempts and grading remain UID-scoped Firebase data.
 
 ## 2. Enable Google Sheets API
 
@@ -25,7 +27,7 @@ The workbook must be shared as **Anyone with the link — Viewer** for this publ
 5. Add the application package `com.htanh.appvk` and the SHA-1 certificate fingerprints for each build variant you distribute.
 6. Under API restrictions, allow only Google Sheets API.
 
-The API key is included in the APK because this is a public read-only client integration. It is not a secret. Restrict it as described above and never commit it to Git.
+The API key is included in the APK because this is a public read-only client integration; assume it can be extracted by users. Restrict it to the Android package/signing certificate(s) and Google Sheets API where supported, monitor usage/quotas, rotate it if abused, and never commit it to Git. An API key identifies the calling project; it does not make private spreadsheets readable.
 
 ## 3. Configure local.properties
 
@@ -50,6 +52,8 @@ Open HTAVk, choose **Mở kho học tập**, and use **Làm mới** to retry a s
 
 ## 5. Validate the workbook before sharing
 
+- Sharing is set to Anyone with the link — Viewer (not Editor).
+- The workbook contains only information approved for public access.
 - Every required tab exists and has a header row.
 - IDs are unique within each tab and remain stable when rows are reordered.
 - Every chapter references a subject, every topic references a chapter, every question references a topic and every option references a question.
