@@ -12,7 +12,7 @@ Create one spreadsheet and add these five required tabs:
 - `QUESTIONS`
 - `QUESTION_OPTIONS`
 
-Use the exact v1 column headers in [LEARNING_CONTENT_MODULE_SPEC.md](../features/LEARNING_CONTENT_MODULE_SPEC.md). Keep the header row at row 1. The parser matches headers by name, so columns can be reordered, but do not rename required headers.
+Use the exact v1 column headers in [LEARNING_CONTENT_MODULE_SPEC.md](../features/LEARNING_CONTENT_MODULE_SPEC.md). Set the spreadsheet locale to United States (or a locale that formats decimal values with a dot). Keep the header row at row 1. The parser matches headers by name, so columns can be reordered, but do not rename required headers.
 
 The workbook must be shared as **Anyone with the link — Viewer** for this public read-only integration. Do not put private user records, essay submissions, grading results, credentials or API keys in this workbook.
 
