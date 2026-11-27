@@ -53,7 +53,11 @@ Before implementing or changing data contracts, inspect the latest approved prod
 
 The repository was originally a small Java/XML equation-solver starter. The Kotlin foundation branch migrates application and test source to Kotlin, updates the application identity, and replaces the demo screen with an initial HTAVk dashboard shell.
 
-The dashboard is only a UI foundation. Authentication, Google Sheets content loading, Firebase persistence, Room caching, practice, exams, essays and rewards must be verified independently before being called functional.
+The learning-content vertical slice is implemented on the `feat/learning-content-pipeline` branch: Google Sheets API v4 read-only batch fetch, header-based Kotlin parsing and validation, transactional Room snapshot cache, Flow-backed repository/ViewModel, and XML navigation from subjects to chapters, topics and questions. Live sync requires the public spreadsheet and restricted API key to be configured as described in [Google Sheets setup](docs/setup/GOOGLE_SHEETS_SETUP.md). Build/runtime validation is tracked in the feature PR. Authentication, Firebase user data, practice sessions, exams, essay submissions/grading and rewards remain separate work items.
+
+## Learning content setup
+
+Read [the learning-content technical specification](docs/features/LEARNING_CONTENT_MODULE_SPEC.md) and [Google Sheets setup](docs/setup/GOOGLE_SHEETS_SETUP.md). Configure `htavk.sheets.spreadsheetId` and `htavk.sheets.apiKey` in the ignored root `local.properties` file before testing live sync.
 
 ## Requirements
 
