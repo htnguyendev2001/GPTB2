@@ -51,7 +51,7 @@ Essay prompts may be represented as public questions. A learner's essay response
 
 ### Explicit implementation contract introduced by this spec
 
-The repository did not contain a versioned learning-workbook schema when this specification was prepared. Therefore, the exact tab headers and field names below are the v1.0 contract for implementation, not a claim that an older workbook already uses these headers. The owner must align the source spreadsheet to this contract before enabling production sync.
+The source workbook GPTB2_Google_Sheets_Template_v1.0.xlsx was inspected on 2026-11-27. The tables below document the actual workbook headers and distinguish fields currently consumed by the first Android implementation from fields reserved for a later model/UI increment. The Android parser accepts the original workbook names; the spreadsheet does not need to be renamed to match internal Kotlin property names.
 
 ## 3. Workbook contract
 
@@ -66,8 +66,8 @@ One spreadsheet contains the following tabs. Tab names are case-sensitive. Heade
 | subject_id | String | Yes | Stable unique ID; do not reuse after deletion |
 | name | String | Yes | Display name |
 | description | String | No | Short description |
-| icon_url | URL/String | No | Optional icon |
-| cover_image_url | URL/String | No | Optional cover |
+| icon | Material icon identifier | No | Workbook value such as calculate/science; not a URL. Not yet retained by the current Room model |
+| image_url | URL/String | No | Optional subject cover; mapped to the current coverImageUrl field |
 | sort_order | Integer | No | Display order; default 0 |
 | is_active | Boolean | No | true when blank; false hides the item |
 | updated_at | ISO-8601/String | No | Editorial timestamp, informational only |
@@ -101,12 +101,16 @@ One spreadsheet contains the following tabs. Tab names are case-sensitive. Heade
 | Column | Type | Required | Meaning |
 |---|---|---:|---|
 | question_id | String | Yes | Stable unique ID |
+| subject_id | String | Yes | Redundant hierarchy key; validated against topic -> chapter -> subject |
+| chapter_id | String | Yes | Redundant hierarchy key; validated against topic -> chapter |
 | topic_id | String | Yes | Foreign key to TOPICS.topic_id |
 | question_type | Enum | Yes | MCQ or ESSAY |
 | difficulty | Enum | No | EASY, MEDIUM or HARD; defaults to MEDIUM |
 | content | String | Yes | Question prompt; plain text in v1 |
-| explanation | String | No | Public explanation shown by a later practice feature |
-| points | Decimal | No | Non-negative score value; defaults to 1 |
+| image_url | URL/String | No | Optional question image; not yet retained by the current Room model |
+| explanation | String | No | Public explanation shown by the practice feature |
+| max_score | Decimal | No | Non-negative score value; mapped to the current points field, defaults to 1 |
+| estimated_time_seconds | Integer | No | Estimated duration; not yet retained by the current Room model |
 | sort_order | Integer | No | Display order; defaults to 0 |
 | is_active | Boolean | No | true when blank |
 | updated_at | ISO-8601/String | No | Informational timestamp |
@@ -117,7 +121,9 @@ One spreadsheet contains the following tabs. Tab names are case-sensitive. Heade
 |---|---|---:|---|
 | option_id | String | Yes | Stable unique ID |
 | question_id | String | Yes | Foreign key to QUESTIONS.question_id |
-| option_text | String | Yes | Option text |
+| option_label | String | No | Display label such as A/B/C/D; not yet retained by the current Room model |
+| content | String | Yes | Option text; parser also accepts the legacy option_text alias |
+| image_url | URL/String | No | Optional option image; not yet retained by the current Room model |
 | is_correct | Boolean | Yes | Public answer key |
 | sort_order | Integer | No | Display order; defaults to 0 |
 
