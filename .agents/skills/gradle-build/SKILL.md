@@ -1,36 +1,38 @@
 ---
 name: gradle-build
-description: Maintain and troubleshoot the GPTB2 Gradle build, Android Gradle Plugin, wrapper, SDK configuration, dependency resolution, and build variants.
+description: Maintain and troubleshoot the HTAVk Gradle build, Kotlin Android plugin, Android Gradle Plugin, wrapper, SDK configuration and dependencies.
 ---
 
-# Gradle Build Skill
+# Gradle Build Skill — HTAVk
 
 ## Project toolchain
 
 - Android Gradle Plugin: 8.13.2.
 - Gradle Wrapper: 8.13.
 - Gradle runtime JDK: 17.
-- compileSdk / targetSdk: 36.
-- Java source / target compatibility: 8.
-- Groovy build scripts.
+- Kotlin Gradle plugin: 2.2.21.
+- compileSdk / targetSdk: 36; minSdk: 21.
+- Kotlin JVM target: 1.8.
+- Gradle build scripts use Groovy DSL.
 
 ## Safe build changes
 
-- Inspect root and module build scripts plus settings before changing plugin or dependency versions.
-- Use `./gradlew` / `gradlew.bat`; do not assume a global Gradle installation.
-- Keep AGP and Gradle versions aligned with the official compatibility table.
+- Inspect root/module build scripts and settings before changing plugin or dependency versions.
+- Use ./gradlew / gradlew.bat; do not assume a global Gradle installation.
+- Keep AGP, Gradle and Kotlin plugin versions compatible.
 - Keep repositories centralized in settings.gradle; respect FAIL_ON_PROJECT_REPOS.
-- Pin versions; avoid dynamic versions and unnecessary dependency churn.
+- Pin dependency versions; avoid dynamic versions and unnecessary dependency churn.
 - Do not hardcode local Android SDK paths or machine-specific JDK paths.
-- Explain why each plugin / dependency change is needed.
+- Explain why each plugin/dependency change is needed.
+- Kotlin is the only allowed language for application and test source.
 
 ## Troubleshooting sequence
 
 1. Capture the exact failing task and first meaningful exception.
-2. Check Gradle runtime JDK with `./gradlew --version`.
-3. Check wrapper distribution and AGP compatibility.
+2. Check Gradle runtime JDK with ./gradlew --version.
+3. Check wrapper distribution and AGP/Kotlin plugin compatibility.
 4. Check SDK Platform 36 and Build Tools installation.
-5. Check repository / dependency resolution and network failures.
+5. Check repository/dependency resolution and network failures.
 6. Make one focused correction at a time.
 
 ## Validation
