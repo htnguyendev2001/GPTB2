@@ -169,3 +169,17 @@ Compatibility remains partial. The current domain/Room schema does not preserve 
 ## 10. Verification boundary
 
 This audit inspected the uploaded XLSX at the workbook-structure level. It did not inspect the live Google Spreadsheet contents, actual sharing setting, API key restrictions, Firebase project configuration or production data. The public read-only access model is approved, but its live configuration and end-to-end API access remain unverified.
+
+
+## 11. Model and Room field preservation progress (2026-11-27)
+
+The parser/domain/Room pipeline now preserves the remaining first-slice workbook metadata:
+- SUBJECTS.icon -> Subject.iconName (Material icon identifier; the legacy iconUrl field remains for compatibility and is not populated from this column).
+- QUESTIONS.image_url -> LearningQuestion.imageUrl.
+- QUESTIONS.estimated_time_seconds -> nullable non-negative LearningQuestion.estimatedTimeSeconds.
+- QUESTION_OPTIONS.option_label -> QuestionOption.label.
+- QUESTION_OPTIONS.image_url -> QuestionOption.imageUrl.
+
+Room schema is now version 2. The application registers migration 1 -> 2, adding nullable columns to the existing tables so previously cached catalogue rows remain intact. Repository mapping now carries these fields in both directions. The practice screen displays option labels and estimated duration; remote image rendering is not yet implemented, but image URLs are retained in the cache rather than discarded.
+
+Automated verification is pending for the new commits. Do not treat this section as a successful CI or live Google Sheets sync report until the corresponding workflow completes and the spreadsheet's Viewer permission/API access are verified.
