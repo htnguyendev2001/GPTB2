@@ -66,7 +66,7 @@ One spreadsheet contains the following tabs. Tab names are case-sensitive. Heade
 | subject_id | String | Yes | Stable unique ID; do not reuse after deletion |
 | name | String | Yes | Display name |
 | description | String | No | Short description |
-| icon | Material icon identifier | No | Workbook value such as calculate/science; not a URL. Not yet retained by the current Room model |
+| icon | Material icon identifier | No | Workbook value such as calculate/science; not a URL. Preserved as Subject.iconName; not interpreted as a URL |
 | image_url | URL/String | No | Optional subject cover; mapped to the current coverImageUrl field |
 | sort_order | Integer | No | Display order; default 0 |
 | is_active | Boolean | No | true when blank; false hides the item |
@@ -107,10 +107,10 @@ One spreadsheet contains the following tabs. Tab names are case-sensitive. Heade
 | question_type | Enum | Yes | MCQ or ESSAY |
 | difficulty | Enum | No | EASY, MEDIUM or HARD; defaults to MEDIUM |
 | content | String | Yes | Question prompt; plain text in v1 |
-| image_url | URL/String | No | Optional question image; not yet retained by the current Room model |
+| image_url | URL/String | No | Optional question image; preserved as LearningQuestion.imageUrl (rendering is pending) |
 | explanation | String | No | Public explanation shown by the practice feature |
 | max_score | Decimal | No | Non-negative score value; mapped to the current points field, defaults to 1 |
-| estimated_time_seconds | Integer | No | Estimated duration; not yet retained by the current Room model |
+| estimated_time_seconds | Integer | No | Estimated duration; preserved as nullable LearningQuestion.estimatedTimeSeconds |
 | sort_order | Integer | No | Display order; defaults to 0 |
 | is_active | Boolean | No | true when blank |
 | updated_at | ISO-8601/String | No | Informational timestamp |
@@ -121,9 +121,9 @@ One spreadsheet contains the following tabs. Tab names are case-sensitive. Heade
 |---|---|---:|---|
 | option_id | String | Yes | Stable unique ID |
 | question_id | String | Yes | Foreign key to QUESTIONS.question_id |
-| option_label | String | No | Display label such as A/B/C/D; not yet retained by the current Room model |
+| option_label | String | No | Display label such as A/B/C/D; preserved as QuestionOption.label |
 | content | String | Yes | Option text; parser also accepts the legacy option_text alias |
-| image_url | URL/String | No | Optional option image; not yet retained by the current Room model |
+| image_url | URL/String | No | Optional option image; preserved as QuestionOption.imageUrl (rendering is pending) |
 | is_correct | Boolean | Yes | Public answer key |
 | sort_order | Integer | No | Display order; defaults to 0 |
 
@@ -203,11 +203,11 @@ The network layer must not expose raw JSON, spreadsheet rows or column positions
 
 Typed Kotlin models:
 
-- Subject(id, name, description, iconUrl, coverImageUrl, sortOrder, isActive)
+- Subject(id, name, description, iconUrl, coverImageUrl, sortOrder, isActive, iconName)
 - Chapter(id, subjectId, name, description, sortOrder, isActive)
 - Topic(id, chapterId, name, description, sortOrder, isActive)
-- LearningQuestion(id, topicId, type, difficulty, content, explanation, points, sortOrder, isActive)
-- QuestionOption(id, questionId, text, isCorrect, sortOrder)
+- LearningQuestion(id, topicId, type, difficulty, content, explanation, points, sortOrder, isActive, imageUrl, estimatedTimeSeconds)
+- QuestionOption(id, questionId, text, isCorrect, sortOrder, label, imageUrl)
 - LearningCatalog(subjects, chapters, topics, questions, options)
 
 Room 2.7.2 is pinned for this implementation because the app retains minSdk 21; Room 2.8.x raises the minimum Android API to 23. The source `updated_at` value is informational and is not a version-history mechanism. v1 stores only the most recent valid snapshot.
@@ -392,3 +392,6 @@ The learning catalogue now opens an individual practice screen when a learner se
 - The practice Activity observes the existing Room-backed repository Flow; it does not read Google Sheets directly.
 - The practice screen is registered as a non-exported Activity and receives only a question ID through its Intent.
 - No answer attempt history, score aggregation, exam timer, submission API or Firestore write is included in this increment.
+
+
+Room schema version 2 adds nullable columns for the new workbook metadata through a registered 1-to-2 migration. The repository maps the added fields to and from Room. Remote image rendering remains a separate UI task; image URLs are retained in the local cache.
