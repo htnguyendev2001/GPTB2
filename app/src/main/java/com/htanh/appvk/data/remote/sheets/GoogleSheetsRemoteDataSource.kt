@@ -152,7 +152,7 @@ internal fun InputStream.readUtf8Bounded(maxBytes: Long): String {
         if (total > maxBytes) {
             throw LearningContentSyncException(
                 LearningContentSyncException.Category.INVALID_CONTENT,
-                "Google Sheets response exceeds the 10 MiB limit."
+                "Google Sheets response exceeds the ${maxBytes / (1024 * 1024)} MiB limit."
             )
         }
         output.write(buffer, 0, count)
