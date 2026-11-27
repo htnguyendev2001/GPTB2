@@ -35,7 +35,8 @@ class LearningPracticeActivity : AppCompatActivity() {
     private lateinit var essayNotice: TextView
     private lateinit var checkButton: MaterialButton
     private lateinit var feedback: TextView
-    private var renderedQuestionId: String? = null
+    private var renderedQuestion: LearningQuestion? = null
+    private var renderedOptions: List<QuestionOption>? = null
     private var currentQuestion: LearningQuestion? = null
     private var currentOptions: List<QuestionOption> = emptyList()
     private var selectedOptionId: String? = null
@@ -97,16 +98,16 @@ class LearningPracticeActivity : AppCompatActivity() {
         questionContent.text = question.content
         LearningImageLoader.load(questionImage, question.imageUrl, lifecycleScope)
         questionImage.visibility = if (LearningImageLoader.supportsUrl(question.imageUrl)) View.VISIBLE else View.GONE
-        feedback.visibility = View.GONE
-
         val isEssay = question.type == QuestionType.ESSAY
         optionsGroup.visibility = if (isEssay) View.GONE else View.VISIBLE
         essayAnswer.visibility = if (isEssay) View.VISIBLE else View.GONE
         essayNotice.visibility = if (isEssay) View.VISIBLE else View.GONE
         checkButton.visibility = if (isEssay) View.GONE else View.VISIBLE
 
-        if (renderedQuestionId != question.id) {
-            renderedQuestionId = question.id
+        if (renderedQuestion != question || renderedOptions != options) {
+            renderedQuestion = question
+            renderedOptions = options.toList()
+            feedback.visibility = View.GONE
             selectedOptionId = null
             optionsGroup.removeAllViews()
             options.forEach { option ->
@@ -184,6 +185,13 @@ class LearningPracticeActivity : AppCompatActivity() {
     }
 
     private fun showLoadError(message: String) {
+        renderedQuestion = null
+        renderedOptions = null
+        currentQuestion = null
+        currentOptions = emptyList()
+        selectedOptionId = null
+        optionsGroup.removeAllViews()
+        feedback.visibility = View.GONE
         questionTitle.text = getString(R.string.practice_question_title)
         questionContent.text = message
         questionMetadata.visibility = View.GONE
