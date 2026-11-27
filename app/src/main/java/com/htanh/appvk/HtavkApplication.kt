@@ -2,6 +2,8 @@ package com.htanh.appvk
 
 import android.app.Application
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.htanh.appvk.data.local.LearningDatabase
 import com.htanh.appvk.data.remote.sheets.GoogleSheetsRemoteDataSource
 import com.htanh.appvk.data.repository.LearningContentRepository
@@ -17,7 +19,7 @@ class HtavkApplication : Application() {
             applicationContext,
             LearningDatabase::class.java,
             "htavk_learning_content.db"
-        ).build()
+        ).addMigrations(MIGRATION_1_2).build()
 
         val remoteDataSource = GoogleSheetsRemoteDataSource(
             spreadsheetId = BuildConfig.LEARNING_CONTENT_SPREADSHEET_ID,
@@ -25,4 +27,17 @@ class HtavkApplication : Application() {
         )
         learningContentRepository = LearningContentRepositoryImpl(database, remoteDataSource)
     }
+    
+    companion object {
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE subjects ADD COLUMN iconName TEXT")
+                db.execSQL("ALTER TABLE learning_questions ADD COLUMN imageUrl TEXT")
+                db.execSQL("ALTER TABLE learning_questions ADD COLUMN estimatedTimeSeconds INTEGER")
+                db.execSQL("ALTER TABLE question_options ADD COLUMN label TEXT")
+                db.execSQL("ALTER TABLE question_options ADD COLUMN imageUrl TEXT")
+            }
+        }
+    }
 }
+
