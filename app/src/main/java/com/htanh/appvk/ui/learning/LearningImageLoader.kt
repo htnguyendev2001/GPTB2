@@ -49,7 +49,11 @@ internal object LearningImageLoader {
     }
 
     private fun downloadAndDecode(url: String): Bitmap? {
-        val connection = (URL(url).openConnection() as? HttpsURLConnection) ?: return null
+        val connection = try {
+            URL(url).openConnection() as? HttpsURLConnection
+        } catch (_: Exception) {
+            null
+        } ?: return null
         return try {
             connection.connectTimeout = 10_000
             connection.readTimeout = 10_000
@@ -59,7 +63,7 @@ internal object LearningImageLoader {
 
             if (connection.responseCode !in 200..299) return null
             if (connection.contentType?.startsWith("image/", ignoreCase = true) != true) return null
-            if (connection.contentLengthLong > MAX_DOWNLOAD_BYTES) return null
+            if (connection.contentLength > MAX_DOWNLOAD_BYTES) return null
 
             val bytes = connection.inputStream.use { input ->
                 ByteArrayOutputStream().use { output ->
