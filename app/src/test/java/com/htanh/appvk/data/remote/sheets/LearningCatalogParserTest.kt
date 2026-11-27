@@ -28,6 +28,54 @@ class LearningCatalogParserTest {
     }
 
     @Test
+    fun parsesWorkbookV10ColumnNamesWithoutRenamingHeaders() {
+        val tables = mapOf(
+            LearningCatalogParser.SUBJECTS to table(
+                LearningCatalogParser.SUBJECTS,
+                listOf(
+                    listOf("subject_id", "name", "description", "icon", "image_url", "sort_order", "is_active"),
+                    listOf("SUBJ_MATH", "Toán học", "Mô tả", "calculate", "https://example.com/math.png", "1", "TRUE")
+                )
+            ),
+            LearningCatalogParser.CHAPTERS to table(
+                LearningCatalogParser.CHAPTERS,
+                listOf(
+                    listOf("chapter_id", "subject_id", "name", "description", "sort_order", "is_active"),
+                    listOf("CH_01", "SUBJ_MATH", "Số học", "", "1", "TRUE")
+                )
+            ),
+            LearningCatalogParser.TOPICS to table(
+                LearningCatalogParser.TOPICS,
+                listOf(
+                    listOf("topic_id", "chapter_id", "name", "description", "sort_order", "is_active"),
+                    listOf("TOP_01", "CH_01", "Phép cộng", "", "1", "TRUE")
+                )
+            ),
+            LearningCatalogParser.QUESTIONS to table(
+                LearningCatalogParser.QUESTIONS,
+                listOf(
+                    listOf("question_id", "subject_id", "chapter_id", "topic_id", "question_type", "difficulty", "content", "image_url", "explanation", "max_score", "estimated_time_seconds", "is_active", "sort_order"),
+                    listOf("Q_01", "SUBJ_MATH", "CH_01", "TOP_01", "MCQ", "EASY", "2 + 2 = ?", "", "Giải thích", "10", "30", "TRUE", "1")
+                )
+            ),
+            LearningCatalogParser.QUESTION_OPTIONS to table(
+                LearningCatalogParser.QUESTION_OPTIONS,
+                listOf(
+                    listOf("option_id", "question_id", "option_label", "content", "image_url", "is_correct", "sort_order"),
+                    listOf("OPT_A", "Q_01", "A", "4", "", "TRUE", "1"),
+                    listOf("OPT_B", "Q_01", "B", "5", "", "FALSE", "2")
+                )
+            )
+        )
+
+        val catalog = LearningCatalogParser.parse(tables)
+
+        assertEquals("https://example.com/math.png", catalog.subjects.single().coverImageUrl)
+        assertEquals(10.0, catalog.questions.single().points, 0.0)
+        assertEquals("4", catalog.options.first { it.id == "OPT_A" }.text)
+    }
+
+    @Test
     fun acceptsEssayQuestionWithoutOptions() {
         val tables = validTables(
             questions = listOf(
