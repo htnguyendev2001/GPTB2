@@ -10,7 +10,8 @@ data class Subject(
     val iconUrl: String,
     val coverImageUrl: String,
     val sortOrder: Int,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val iconName: String? = null
 )
 
 data class Chapter(
@@ -40,7 +41,9 @@ data class LearningQuestion(
     val explanation: String,
     val points: Double,
     val sortOrder: Int,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val imageUrl: String? = null,
+    val estimatedTimeSeconds: Int? = null
 )
 
 data class QuestionOption(
@@ -48,7 +51,9 @@ data class QuestionOption(
     val questionId: String,
     val text: String,
     val isCorrect: Boolean,
-    val sortOrder: Int
+    val sortOrder: Int,
+    val label: String? = null,
+    val imageUrl: String? = null
 )
 
 data class LearningCatalog(
