@@ -13,6 +13,11 @@ on:
 permissions:
   contents: read
 
+# Keep only the newest verification run for a branch while developers are iterating.
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     name: Unit tests, debug build and Room instrumentation
