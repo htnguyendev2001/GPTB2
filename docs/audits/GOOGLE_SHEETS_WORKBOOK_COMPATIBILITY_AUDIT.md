@@ -4,19 +4,25 @@
 - Source workbook: `GPTB2_Google_Sheets_Template_v1.0.xlsx`
 - Audited on: 2026-11-27
 - Workbook version: v1.0
-- Status: **BLOCKED — workbook and implementation contracts are not aligned**
+- Status: **PARTIALLY RESOLVED — public read-only access approved; workbook schema alignment remains blocked**
 - Scope: structural inspection of the uploaded XLSX; this does not verify the live Google Spreadsheet or its current permissions.
 
 ## 1. Executive summary
 
 The uploaded workbook contains 14 visible worksheets. The current learning parser requires five tabs, but several required column names and fields differ. The current implementation therefore cannot parse the workbook as-is.
 
-There is also a material access-policy mismatch:
-- Workbook GUIDE says not to share the spreadsheet publicly and says only a backend service account and content managers should have access.
-- Current Android implementation uses a Google Sheets API key and requires public read access.
-- The approved HTAVk product constraints prohibit a custom backend and Cloud Functions.
+### Access-policy decision — APPROVED by Project Owner on 2026-11-27
 
-This access model must be resolved before live sync can be considered operational. Do not make the workbook public merely to satisfy the current implementation.
+The Project Owner explicitly approved **Anyone with the link — Viewer** so the Android app can read the learning spreadsheet directly using the Google Sheets API. The app must remain read-only; it must never write to the spreadsheet.
+
+This is an explicit HTAVk product decision that overrides the uploaded workbook GUIDE's older instruction not to share the spreadsheet publicly. The GUIDE should be updated in the source workbook by its owner so future content editors do not follow the superseded private-sheet instruction.
+
+Security constraints:
+- Only public learning catalogue/configuration intended for every app user may be placed in this spreadsheet.
+- Never put learner identity, essay answers, submissions, grades, tokens, API keys, private contact details or other private data in it.
+- Restrict the Google API key to the Android package/signing certificate(s) and Google Sheets API where supported; do not commit the key.
+- Public sharing is read-only. Content changes remain the responsibility of authorized spreadsheet editors.
+- The approval defines the intended access model; it does not prove that the live spreadsheet sharing setting or API key currently works.
 
 The workbook also defines `ESSAY_ATTEMPTS` and `ESSAY_SUBMISSIONS` as grading workflow tabs. HTAVk's product decision is that learner attempts, submitted essay text, attachments and grading are private UID-scoped Firebase records, not public/shared content data. These tabs must not be read or written by the Android public-content pipeline.
 
@@ -112,20 +118,17 @@ Decision for HTAVk implementation:
 
 ## 6. Access and security mismatch
 
-GUIDE says:
-- Do not share the spreadsheet publicly.
-- Only a backend service account and content managers should access it.
-- Google Sheets is not a transactional database and must not own balances, streak validation or user ownership.
+The uploaded GUIDE says not to share the spreadsheet publicly and describes backend service-account access. This instruction conflicts with the Project Owner's explicit decision on 2026-11-27 to allow public read-only access for direct Android client reads.
 
-The current Android client implementation uses Sheets API v4 with an API key and assumes the spreadsheet is publicly readable. An API key does not grant access to a private spreadsheet.
+For HTAVk, the approved rule is:
+1. Share the spreadsheet as **Anyone with the link — Viewer**.
+2. The Android app uses Sheets API v4 with a restricted API key for read-only requests.
+3. The spreadsheet must contain only content intended to be public to all app users.
+4. Do not embed service-account private keys or put private learner data in the workbook.
+5. Keep the spreadsheet ID and API key out of source control and localize configuration as documented.
+6. Do not claim live sync works until the live sharing setting, API key restrictions and actual response are tested.
 
-Because HTAVk also prohibits a custom backend and Cloud Functions, the current implementation and GUIDE do not define a mutually compatible private-sheet access path.
-
-Required resolution before production sync:
-1. Confirm whether the content spreadsheet is intentionally public read-only or must remain private.
-2. If private access is required, approve a supported client authorization/access design that does not introduce a prohibited custom backend or expose service-account credentials in the APK.
-3. Keep the spreadsheet ID/API key out of source control and never embed service-account private keys in the Android app.
-4. Do not claim live sync works until access is tested against the actual Google Spreadsheet.
+Google Sheets is not a transactional database and must not own balances, streak validation, essay submissions or user ownership.
 
 ## 7. Validation rules observed
 
@@ -145,7 +148,7 @@ No cell formulas or defined names were found. Data validation is spreadsheet inp
 
 ## 8. Recommended next implementation sequence
 
-1. Resolve the spreadsheet access model and confirm the workbook is the intended source for HTAVk.
+1. Update the workbook GUIDE to reflect the approved public read-only sharing policy.
 2. Approve the field mapping for SUBJECTS, QUESTIONS and QUESTION_OPTIONS, including question/option images, max score and estimated time.
 3. Update domain models, parser and parser tests to the approved workbook headers; keep strict validation and all-or-nothing Room replacement.
 4. Add APP_CONFIG/EXAMS/EXAM_QUESTIONS/BADGES/LEVELS/MISSIONS only as separately scoped features with explicit acceptance criteria.
@@ -154,4 +157,4 @@ No cell formulas or defined names were found. Data validation is spreadsheet inp
 
 ## 9. Verification boundary
 
-This audit inspected the uploaded XLSX at the workbook-structure level. It did not inspect the live Google Spreadsheet contents, sharing settings, API key restrictions, Firebase project configuration or production data. Those remain unverified.
+This audit inspected the uploaded XLSX at the workbook-structure level. It did not inspect the live Google Spreadsheet contents, actual sharing setting, API key restrictions, Firebase project configuration or production data. The public read-only access model is approved, but its live configuration and end-to-end API access remain unverified.
