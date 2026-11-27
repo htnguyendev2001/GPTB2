@@ -26,19 +26,26 @@ class LearningContentRepositoryImpl(
     private val dao = database.learningContentDao()
 
     override fun observeCatalog(): Flow<LearningCatalog> {
-        val cachedCatalog = combine(
+        val hierarchy = combine(
             dao.observeSubjects(),
             dao.observeChapters(),
-            dao.observeTopics(),
+            dao.observeTopics()
+        ) { subjects, chapters, topics ->
+            Triple(subjects, chapters, topics)
+        }
+        val questionContent = combine(
             dao.observeQuestions(),
             dao.observeOptions()
-        ) { subjects, chapters, topics, questions, options ->
+        ) { questions, options ->
+            questions to options
+        }
+        val cachedCatalog = combine(hierarchy, questionContent) { tree, questionData ->
             LearningCatalog(
-                subjects = subjects.map { it.toDomain() },
-                chapters = chapters.map { it.toDomain() },
-                topics = topics.map { it.toDomain() },
-                questions = questions.map { it.toDomain() },
-                options = options.map { it.toDomain() }
+                subjects = tree.first.map { it.toDomain() },
+                chapters = tree.second.map { it.toDomain() },
+                topics = tree.third.map { it.toDomain() },
+                questions = questionData.first.map { it.toDomain() },
+                options = questionData.second.map { it.toDomain() }
             )
         }
         return combine(cachedCatalog, dao.observeMetadata(LAST_SUCCESSFUL_SYNC_KEY)) { catalog, syncTimestamp ->
