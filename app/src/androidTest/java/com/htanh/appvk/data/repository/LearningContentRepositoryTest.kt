@@ -9,6 +9,10 @@ import com.htanh.appvk.data.remote.sheets.LearningContentRemoteDataSource
 import com.htanh.appvk.data.remote.sheets.LearningContentSyncException
 import com.htanh.appvk.domain.learning.Chapter
 import com.htanh.appvk.domain.learning.LearningCatalog
+import com.htanh.appvk.domain.learning.LearningQuestion
+import com.htanh.appvk.domain.learning.QuestionDifficulty
+import com.htanh.appvk.domain.learning.QuestionOption
+import com.htanh.appvk.domain.learning.QuestionType
 import com.htanh.appvk.domain.learning.Subject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -35,6 +39,11 @@ class LearningContentRepositoryTest {
             val cached = repository.observeCatalog().first()
             assertEquals("SUBJ_MATH", cached.subjects.single().id)
             assertEquals("CH_01", cached.chapters.single().id)
+            assertEquals("calculate", cached.subjects.single().iconName)
+            assertEquals("https://example.com/question.png", cached.questions.single().imageUrl)
+            assertEquals(45, cached.questions.single().estimatedTimeSeconds)
+            assertEquals("A", cached.options.single().label)
+            assertEquals("https://example.com/option.png", cached.options.single().imageUrl)
             assertTrue(cached.lastSuccessfulSyncAt != null)
         } finally {
             database.close()
@@ -42,8 +51,24 @@ class LearningContentRepositoryTest {
     }
 
     private fun sampleCatalog() = LearningCatalog(
-        subjects = listOf(Subject("SUBJ_MATH", "Toán", "", "", "", 0, true)),
-        chapters = listOf(Chapter("CH_01", "SUBJ_MATH", "Số học", "", 0, true))
+        subjects = listOf(Subject("SUBJ_MATH", "Toán", "", "", "", 0, true, iconName = "calculate")),
+        chapters = listOf(Chapter("CH_01", "SUBJ_MATH", "Số học", "", 0, true)),
+        topics = listOf(com.htanh.appvk.domain.learning.Topic("TOP_01", "CH_01", "Cộng", "", 0, true)),
+        questions = listOf(
+            LearningQuestion(
+                "Q_01", "TOP_01", QuestionType.MCQ, QuestionDifficulty.EASY,
+                "1 + 1 = ?", "", 1.0, 0, true,
+                imageUrl = "https://example.com/question.png",
+                estimatedTimeSeconds = 45
+            )
+        ),
+        options = listOf(
+            QuestionOption(
+                "OPT_A", "Q_01", "2", true, 0,
+                label = "A",
+                imageUrl = "https://example.com/option.png"
+            )
+        )
     )
 
     private class FakeRemoteDataSource(
