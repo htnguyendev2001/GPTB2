@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.htanh.appvk.data.repository.LearningContentRepository
 import com.htanh.appvk.data.repository.LearningContentSyncResult
 import com.htanh.appvk.domain.learning.LearningCatalog
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -39,26 +40,48 @@ class LearningViewModel(
     }
 
     fun refresh() {
+        // Set the guard before launching. Otherwise rapid calls made before the
+        // coroutine starts can each observe isRefreshing=false and queue duplicate API requests.
         if (mutableState.value.isRefreshing) return
+        mutableState.update {
+            it.copy(
+                isRefreshing = true,
+                errorMessage = null,
+                syncMessage = "Đang đồng bộ học liệu…"
+            )
+        }
+
         viewModelScope.launch {
-            mutableState.update { it.copy(isRefreshing = true, errorMessage = null, syncMessage = "Đang đồng bộ học liệu…") }
-            when (val result = repository.refresh()) {
-                is LearningContentSyncResult.Success -> mutableState.update {
-                    it.copy(
-                        isRefreshing = false,
-                        syncMessage = "Đồng bộ học liệu thành công.",
-                        errorMessage = null
-                    )
+            try {
+                when (val result = repository.refresh()) {
+                    is LearningContentSyncResult.Success -> mutableState.update {
+                        it.copy(
+                            syncMessage = "Đồng bộ học liệu thành công.",
+                            errorMessage = null
+                        )
+                    }
+                    is LearningContentSyncResult.Failure -> mutableState.update {
+                        it.copy(
+                            syncMessage = if (it.catalog.subjects.isNotEmpty()) {
+                                "Không thể cập nhật. Đang hiển thị dữ liệu đã lưu."
+                            } else null,
+                            errorMessage = result.message
+                        )
+                    }
                 }
-                is LearningContentSyncResult.Failure -> mutableState.update {
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                mutableState.update {
                     it.copy(
-                        isRefreshing = false,
                         syncMessage = if (it.catalog.subjects.isNotEmpty()) {
                             "Không thể cập nhật. Đang hiển thị dữ liệu đã lưu."
                         } else null,
-                        errorMessage = result.message
+                        errorMessage = error.message ?: "Không thể đồng bộ học liệu."
                     )
                 }
+            } finally {
+                mutableState.update { it.copy(isRefreshing = false) }
             }
         }
     }
