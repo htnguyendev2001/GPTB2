@@ -27,13 +27,17 @@ internal object LearningImageLoader {
         override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
     }
 
+    fun supportsUrl(rawUrl: String?): Boolean {
+        val url = rawUrl?.trim().orEmpty()
+        return url.isNotBlank() &&
+            Uri.parse(url).scheme?.equals("https", ignoreCase = true) == true
+    }
+
     fun load(imageView: ImageView, rawUrl: String?, scope: CoroutineScope) {
         imageView.setImageDrawable(null)
         val url = rawUrl?.trim().orEmpty()
         imageView.tag = url
-        if (url.isBlank() || Uri.parse(url).scheme?.equals("https", ignoreCase = true) != true) {
-            return
-        }
+        if (!supportsUrl(url)) return
 
         memoryCache.get(url)?.let {
             imageView.setImageBitmap(it)
