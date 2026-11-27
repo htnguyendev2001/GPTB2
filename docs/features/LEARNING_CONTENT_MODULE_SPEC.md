@@ -1,8 +1,8 @@
 # HTAVk — Learning Content Module Specification
 
 - Document ID: HTAVK-SPEC-LEARNING-001
-- Version: 1.0
-- Status: Implementation baseline
+- Version: 1.1
+- Status: Implementation baseline; question practice UI in progress
 - Platform: Android native, Kotlin + XML
 - Application ID: `com.htanh.appvk`
 - Source of truth: one public, read-only Google Spreadsheet
@@ -356,3 +356,31 @@ User-facing messages should be understandable and must not expose API keys or ra
 ## 12. Open setup dependency
 
 The source spreadsheet ID and restricted Google API key were not present in the inspected repository. The code must therefore support local configuration and a safe unconfigured state. Production sync cannot be verified until the owner supplies the actual public spreadsheet ID, aligns its headers to this contract, configures the API key locally, and enables the Sheets API for the associated Google Cloud project.
+
+
+## 13. Question practice interaction (implementation increment 1.1)
+
+The learning catalogue now opens an individual practice screen when a learner selects a question.
+
+### MCQ behavior
+
+- The question list shows the prompt, type, difficulty, points and option count only. It does not reveal option correctness or the explanation before the learner opens the question.
+- The practice screen renders the question options as a single-choice RadioGroup.
+- The learner must select one option before checking the answer.
+- Answer evaluation is a pure Kotlin domain operation and is covered by JVM unit tests.
+- After checking, the screen reports whether the selection is correct. For an incorrect selection it shows the correct option; if an explanation exists, it is shown with the result.
+- The answer key is read from the public catalogue. This is a learning/practice interaction, not a secure exam or anti-cheat mechanism.
+
+### Essay behavior
+
+- ESSAY questions open a multiline answer editor.
+- The current increment is deliberately draft-only: text is held by the screen and is not submitted, persisted, or sent to a backend.
+- The UI explicitly tells the learner that saving/submission is not available yet.
+- Essay attempt records, submitted content and grading must be added later through UID-scoped Firestore records; they must not be added to the public workbook.
+
+### Technical boundaries
+
+- Android native Kotlin + XML only.
+- The practice Activity observes the existing Room-backed repository Flow; it does not read Google Sheets directly.
+- The practice screen is registered as a non-exported Activity and receives only a question ID through its Intent.
+- No answer attempt history, score aggregation, exam timer, submission API or Firestore write is included in this increment.
