@@ -87,7 +87,7 @@ class LearningPracticeActivity : AppCompatActivity() {
             R.string.practice_question_metadata,
             question.difficulty.name,
             question.points.toString()
-        )
+        ) + question.estimatedTimeSeconds?.let { " • ${it}s" }.orEmpty()
         questionContent.text = question.content
         feedback.visibility = View.GONE
 
@@ -104,7 +104,7 @@ class LearningPracticeActivity : AppCompatActivity() {
                 val radioButton = RadioButton(this).apply {
                     id = View.generateViewId()
                     tag = option.id
-                    text = option.text
+                    text = listOfNotNull(option.label?.takeIf(String::isNotBlank), option.text).joinToString(". ")
                     textSize = 16f
                     setPadding(8, 16, 8, 16)
                 }
