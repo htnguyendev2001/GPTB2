@@ -33,6 +33,7 @@ class LearningActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var itemsList: RecyclerView
     private lateinit var backButton: MaterialButton
+    private lateinit var refreshButton: MaterialButton
     private lateinit var listAdapter: LearningListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,6 +48,7 @@ class LearningActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.learningProgress)
         itemsList = findViewById(R.id.learningItemsList)
         backButton = findViewById(R.id.btnLearningBack)
+        refreshButton = findViewById(R.id.btnLearningRefresh)
 
         val repository = (application as HtavkApplication).learningContentRepository
         viewModel = ViewModelProvider(this, LearningViewModelFactory(repository))[LearningViewModel::class.java]
@@ -66,7 +68,7 @@ class LearningActivity : AppCompatActivity() {
         itemsList.adapter = listAdapter
         itemsList.setHasFixedSize(false)
 
-        findViewById<MaterialButton>(R.id.btnLearningRefresh).setOnClickListener { viewModel.refresh() }
+        refreshButton.setOnClickListener { viewModel.refresh() }
         backButton.setOnClickListener { viewModel.navigateBack() }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -99,6 +101,7 @@ class LearningActivity : AppCompatActivity() {
         }
         backButton.visibility = if (state.level == LearningLevel.SUBJECTS) View.GONE else View.VISIBLE
         progressBar.visibility = if (state.isRefreshing) View.VISIBLE else View.GONE
+        refreshButton.isEnabled = !state.isRefreshing
 
         val lastSync = catalog.lastSuccessfulSyncAt?.let {
             SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(it))
