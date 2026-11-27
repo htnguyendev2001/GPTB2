@@ -155,6 +155,17 @@ No cell formulas or defined names were found. Data validation is spreadsheet inp
 5. Keep essay attempt/submission/grading data in UID-scoped Firebase only.
 6. Verify the live spreadsheet schema and permissions with a non-production test before enabling production sync.
 
-## 9. Verification boundary
+
+## 9. Parser compatibility progress (2026-11-27)
+
+The parser now accepts the original workbook v1.0 headers as well as the prior internal aliases for these fields:
+- SUBJECTS.image_url maps to the existing coverImageUrl field (cover_image_url remains accepted as a fallback alias).
+- QUESTIONS.max_score maps to the existing points field (points remains accepted as an alias).
+- QUESTION_OPTIONS.content maps to the existing option text field (option_text remains accepted as an alias).
+- When QUESTIONS.subject_id and chapter_id are present, the parser checks them against the canonical topic -> chapter -> subject hierarchy.
+
+Compatibility remains partial. The current domain/Room schema does not preserve SUBJECTS.icon (a Material icon identifier), QUESTIONS.image_url, QUESTIONS.estimated_time_seconds, QUESTION_OPTIONS.option_label or QUESTION_OPTIONS.image_url. These values are currently not consumed by the learning UI or retained in the local cache. A follow-up model/Room schema increment and migration strategy are required before claiming full workbook compatibility. Do not map the Material icon identifier into a URL-named field.
+
+## 10. Verification boundary
 
 This audit inspected the uploaded XLSX at the workbook-structure level. It did not inspect the live Google Spreadsheet contents, actual sharing setting, API key restrictions, Firebase project configuration or production data. The public read-only access model is approved, but its live configuration and end-to-end API access remain unverified.
