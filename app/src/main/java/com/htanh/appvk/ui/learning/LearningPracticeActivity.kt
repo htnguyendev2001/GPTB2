@@ -15,6 +15,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.button.MaterialButton
 import com.htanh.appvk.HtavkApplication
 import com.htanh.appvk.R
+import com.htanh.appvk.domain.learning.AnswerEvaluator
 import com.htanh.appvk.domain.learning.LearningQuestion
 import com.htanh.appvk.domain.learning.QuestionOption
 import com.htanh.appvk.domain.learning.QuestionType
@@ -81,6 +82,7 @@ class LearningPracticeActivity : AppCompatActivity() {
         currentQuestion = question
         currentOptions = options
         questionTitle.text = getString(R.string.practice_question_title)
+        questionMetadata.visibility = View.VISIBLE
         questionMetadata.text = getString(
             R.string.practice_question_metadata,
             question.difficulty.name,
@@ -122,27 +124,29 @@ class LearningPracticeActivity : AppCompatActivity() {
             return
         }
 
-        val selected = currentOptions.firstOrNull { it.id == selectedId } ?: return
-        val correct = selected.isCorrect
+        val evaluation = AnswerEvaluator.evaluate(selectedId, currentOptions) ?: return
         val message = buildString {
-            append(if (correct) getString(R.string.practice_answer_correct) else getString(R.string.practice_answer_incorrect))
+            append(
+                if (evaluation.isCorrect) {
+                    getString(R.string.practice_answer_correct)
+                } else {
+                    getString(R.string.practice_answer_incorrect)
+                }
+            )
             if (question.explanation.isNotBlank()) {
                 append("\n\n")
                 append(getString(R.string.practice_explanation, question.explanation))
             }
-            if (!correct) {
-                val correctAnswer = currentOptions.firstOrNull { it.isCorrect }?.text
-                if (!correctAnswer.isNullOrBlank()) {
-                    append("\n\n")
-                    append(getString(R.string.practice_correct_answer, correctAnswer))
-                }
+            if (!evaluation.isCorrect && !evaluation.correctOptionText.isNullOrBlank()) {
+                append("\n\n")
+                append(getString(R.string.practice_correct_answer, evaluation.correctOptionText))
             }
         }
         feedback.text = message
         feedback.setTextColor(
             ContextCompat.getColor(
                 this,
-                if (correct) R.color.practice_feedback_success else R.color.practice_feedback_error
+                if (evaluation.isCorrect) R.color.practice_feedback_success else R.color.practice_feedback_error
             )
         )
         feedback.visibility = View.VISIBLE
