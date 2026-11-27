@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Review HTAVk changes for correctness, security, Kotlin/Android lifecycle issues, API compatibility, test coverage and regressions.
+description: Review HTVA Vk changes for correctness, security, Kotlin/Android lifecycle issues, API compatibility, test coverage and regressions.
 ---
 
 # Code Review Skill
