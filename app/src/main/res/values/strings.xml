@@ -23,4 +23,16 @@
     <string name="learning_sync_not_started">Chưa đồng bộ học liệu</string>
     <string name="learning_last_sync">Cập nhật gần nhất: %1$s</string>
     <string name="learning_empty">Chưa có nội dung ở mục này.</string>
+    <string name="practice_question_title">Luyện tập</string>
+    <string name="practice_question_metadata">%1$s • %2$s điểm</string>
+    <string name="practice_question_missing">Không xác định được câu hỏi.</string>
+    <string name="practice_question_unavailable">Câu hỏi không còn khả dụng. Hãy quay lại và đồng bộ học liệu.</string>
+    <string name="practice_select_option">Vui lòng chọn một đáp án trước khi kiểm tra.</string>
+    <string name="practice_check_answer">Kiểm tra đáp án</string>
+    <string name="practice_answer_correct">Chính xác! Bạn đã chọn đúng.</string>
+    <string name="practice_answer_incorrect">Chưa chính xác.</string>
+    <string name="practice_explanation">Giải thích: %1$s</string>
+    <string name="practice_correct_answer">Đáp án đúng: %1$s</string>
+    <string name="practice_essay_hint">Nhập nội dung bài tự luận của bạn…</string>
+    <string name="practice_essay_draft_notice">Bài làm hiện chỉ là bản nháp trên màn hình. Chức năng lưu và nộp bài sẽ được bổ sung khi tích hợp hồ sơ người dùng.</string>
 </resources>
