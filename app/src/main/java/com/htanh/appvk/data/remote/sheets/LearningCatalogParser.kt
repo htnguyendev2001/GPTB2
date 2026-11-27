@@ -47,7 +47,24 @@ object LearningCatalogParser {
 
         chapters.forEach { if (it.subjectId !in subjectIds) invalid("CHAPTERS", it.id, "unknown subject_id '${it.subjectId}'") }
         topics.forEach { if (it.chapterId !in chapterIds) invalid("TOPICS", it.id, "unknown chapter_id '${it.chapterId}'") }
-        questions.forEach { if (it.topicId !in topicIds) invalid("QUESTIONS", it.id, "unknown topic_id '${it.topicId}'") }
+        val chapterById = chapters.associateBy { it.id }
+        val topicById = topics.associateBy { it.id }
+        val questionTable = tables.getValue(QUESTIONS)
+        questions.forEach { question ->
+            val topic = topicById[question.topicId]
+                ?: invalid("QUESTIONS", question.id, "unknown topic_id '${question.topicId}'")
+            val chapter = chapterById[topic.chapterId]
+                ?: invalid("TOPICS", topic.id, "unknown chapter_id '${topic.chapterId}'")
+            val row = questionTable.rows.firstOrNull { questionTable.value(it, "question_id") == question.id }.orEmpty()
+            val declaredChapterId = questionTable.value(row, "chapter_id")
+            val declaredSubjectId = questionTable.value(row, "subject_id")
+            if (declaredChapterId.isNotBlank() && declaredChapterId != chapter.id) {
+                invalid("QUESTIONS", question.id, "chapter_id does not match topic hierarchy")
+            }
+            if (declaredSubjectId.isNotBlank() && declaredSubjectId != chapter.subjectId) {
+                invalid("QUESTIONS", question.id, "subject_id does not match topic hierarchy")
+            }
+        }
         options.forEach { if (it.questionId !in questionIds) invalid("QUESTION_OPTIONS", it.id, "unknown question_id '${it.questionId}'") }
 
         val optionsByQuestion = options.groupBy { it.questionId }
