@@ -180,6 +180,6 @@ The parser/domain/Room pipeline now preserves the remaining first-slice workbook
 - QUESTION_OPTIONS.option_label -> QuestionOption.label.
 - QUESTION_OPTIONS.image_url -> QuestionOption.imageUrl.
 
-Room schema is now version 2. The application registers migration 1 -> 2, adding nullable columns to the existing tables so previously cached catalogue rows remain intact. Repository mapping now carries these fields in both directions. The practice screen displays option labels and estimated duration; remote image rendering is not yet implemented, but image URLs are retained in the cache rather than discarded.
+Room schema is now version 2. The application registers migration 1 -> 2, adding nullable columns to the existing tables so previously cached catalogue rows remain intact. Repository mapping now carries these fields in both directions. The practice screen displays option labels and estimated duration; remote image rendering is not yet implemented, but image URLs are retained in the cache rather than discarded. Instrumentation coverage now includes both metadata round-trip through the Room repository and migration of a populated v1 database.
 
 Automated verification is pending for the new commits. Do not treat this section as a successful CI or live Google Sheets sync report until the corresponding workflow completes and the spreadsheet's Viewer permission/API access are verified.
