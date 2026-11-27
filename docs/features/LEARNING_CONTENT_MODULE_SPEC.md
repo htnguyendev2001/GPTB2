@@ -395,3 +395,8 @@ The learning catalogue now opens an individual practice screen when a learner se
 
 
 Room schema version 2 adds nullable columns for the new workbook metadata through a registered 1-to-2 migration. The repository maps the added fields to and from Room. Remote image rendering remains a separate UI task; image URLs are retained in the local cache.
+
+
+### Learning media rendering
+
+The question practice screen renders `QUESTIONS.image_url` below the question prompt and `QUESTION_OPTIONS.image_url` alongside its option. The Kotlin image loader accepts HTTPS URLs only, uses 10-second connect/read timeouts, rejects non-image responses and downloads over 5 MiB, downsamples to a maximum 1280-pixel dimension, and uses a bounded in-memory LRU cache. Redirects and HTTP URLs are not followed. Images are not persisted to disk, so they are downloaded again after process restart. Device/emulator verification remains required.
