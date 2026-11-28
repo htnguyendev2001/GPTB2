@@ -39,6 +39,7 @@ service cloud.firestore {
       allow read: if owns(uid);
       allow create: if owns(uid) && learnerEssayFieldsAreSafe();
       allow update: if owns(uid)
+        && resource.data.status == "DRAFT"
         && learnerEssayFieldsAreSafe()
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(["answer_text", "maximum_score", "status", "submitted_at", "updated_at"]);
