@@ -35,7 +35,7 @@
     <string name="exam_submit_confirm_yes">Nộp bài</string>
     <string name="exam_submit_confirm_no">Tiếp tục làm</string>
     <string name="exam_time_expired">Đã hết thời gian. Hệ thống đang tự động nộp bài.</string>
-    <string name="exam_auth_required">Cần đăng nhập Firebase để lưu bài làm. Phiên làm bài hiện chưa được lưu.</string>
+    <string name="exam_auth_required">Không thể khởi tạo lượt làm bài. Bài làm vẫn được lưu lịch sử cục bộ trên thiết bị.</string>
     <string name="exam_firebase_not_configured">Firebase chưa được cấu hình. Bài làm sẽ chỉ tồn tại trong phiên hiện tại.</string>
     <string name="exam_not_started">Bài này chưa đến thời gian mở.</string>
     <string name="exam_ended">Bài này đã hết thời gian làm.</string>
@@ -49,7 +49,7 @@
     <string name="exam_result_auto_submitted">Bài đã được tự động nộp khi hết giờ.</string>
     <string name="exam_result_submitted">Em đã hoàn thành bài làm. Anh ghi nhận nỗ lực của em nhé.</string>
     <string name="exam_result_close">Hoàn tất</string>
-    <string name="exam_essay_notice">Câu trả lời tự luận sẽ được lưu và chuyển đến giáo viên để chấm sau khi em nộp bài.</string>
+    <string name="exam_essay_notice">Câu trả lời tự luận sẽ được lưu trên thiết bị và gửi đến khu vực dữ liệu của giáo viên sau khi em nộp bài.</string>
     <string name="exam_attempt_save_failed">Không thể lưu lượt làm bài lên Firestore. Hãy kiểm tra cấu hình và quyền truy cập.</string>
     <string name="exam_answer_save_failed">Chưa đồng bộ được câu trả lời. Hãy kiểm tra kết nối mạng trước khi nộp bài nhé.</string>
     <string name="exam_submit_save_failed">Không thể đồng bộ kết quả lên máy chủ. Vui lòng kiểm tra kết nối và thử lại.</string>
@@ -75,5 +75,5 @@
     <string name="practice_essay_draft_notice">Bài viết hiện mới được giữ tạm trên màn hình này, chưa thể lưu hoặc nộp. Anh sẽ bổ sung chức năng đó khi hồ sơ người dùng được tích hợp nhé.</string>
     <string name="progress_loading">Đang tải tổng quan học liệu…</string>
     <string name="progress_catalog_summary">Kho học tập hiện có:\n• %1$d môn học\n• %2$d chương\n• %3$d chủ đề\n• %4$d câu hỏi</string>
-    <string name="progress_not_tracking">Lưu ý: Đây là thống kê nội dung có sẵn, chưa phải số liệu hoàn thành của bạn. Lịch sử làm bài đã có thể được lưu theo tài khoản Firebase; màn hình tổng quan cá nhân, thời gian học và chuỗi ngày học sẽ được tích hợp ở bước tiếp theo.</string>
+    <string name="progress_not_tracking">Lịch sử được lưu trên thiết bị này. Bài nộp đã đồng bộ sẽ có bản ghi trên Firebase để giáo viên xem; bài đang chờ đồng bộ vẫn được giữ trong lịch sử cục bộ.</string>
 </resources>
