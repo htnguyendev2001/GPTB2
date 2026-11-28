@@ -20,6 +20,10 @@ import com.htanh.appvk.HtavkApplication
 import com.htanh.appvk.R
 import com.htanh.appvk.domain.learning.LearningQuestion
 import com.htanh.appvk.domain.learning.QuestionType
+import com.htanh.appvk.domain.learning.ExamAvailability
+import com.htanh.appvk.domain.learning.ExamSessionRules
+import java.time.Instant
+import android.widget.Toast
 import com.htanh.appvk.ui.applySystemBarInsets
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -74,21 +78,37 @@ class LearningActivity : AppCompatActivity() {
                 )
                 LearningLevel.EXAMS -> {
                     val catalog = viewModel.state.value.catalog
-                    val exam = catalog.exams.firstOrNull { it.id == id }
-                    if (exam != null) {
-                        val mappings = catalog.examQuestions.filter { it.examId == id }
-                            .sortedWith(compareBy({ it.sortOrder }, { it.questionId }))
-                        val ids = mappings.map { it.questionId }
-                        if (ids.isNotEmpty()) startActivity(
-                            Intent(this, LearningPracticeActivity::class.java)
-                                .putExtra(LearningPracticeActivity.EXTRA_QUESTION_ID, ids.first())
-                                .putStringArrayListExtra(LearningPracticeActivity.EXTRA_QUESTION_IDS, ArrayList(ids))
-                                .putStringArrayListExtra(LearningPracticeActivity.EXTRA_QUESTION_SCORES, ArrayList(mappings.map { it.score.toString() }))
-                                .putExtra(LearningPracticeActivity.EXTRA_SESSION_TITLE, exam.name)
-                                .putExtra(LearningPracticeActivity.EXTRA_SESSION_TYPE, exam.type.name)
-                                .putExtra(LearningPracticeActivity.EXTRA_DURATION_MINUTES, exam.durationMinutes)
-                        )
+                    val exam = catalog.exams.firstOrNull { it.id == id } ?: return@LearningListAdapter
+                    when (ExamSessionRules.availability(exam, Instant.now())) {
+                        ExamAvailability.AVAILABLE -> Unit
+                        ExamAvailability.NOT_STARTED -> {
+                            Toast.makeText(this, R.string.exam_not_started, Toast.LENGTH_LONG).show()
+                            return@LearningListAdapter
+                        }
+                        ExamAvailability.ENDED -> {
+                            Toast.makeText(this, R.string.exam_ended, Toast.LENGTH_LONG).show()
+                            return@LearningListAdapter
+                        }
+                        ExamAvailability.INVALID_SCHEDULE -> {
+                            Toast.makeText(this, R.string.exam_schedule_invalid, Toast.LENGTH_LONG).show()
+                            return@LearningListAdapter
+                        }
                     }
+                    val mappings = catalog.examQuestions.filter { it.examId == id }
+                        .sortedWith(compareBy({ it.sortOrder }, { it.questionId }))
+                        .filter { mapping -> catalog.questions.any { it.id == mapping.questionId && it.isActive } }
+                    val ids = mappings.map { it.questionId }
+                    if (ids.isNotEmpty()) startActivity(
+                        Intent(this, LearningPracticeActivity::class.java)
+                            .putExtra(LearningPracticeActivity.EXTRA_QUESTION_ID, ids.first())
+                            .putStringArrayListExtra(LearningPracticeActivity.EXTRA_QUESTION_IDS, ArrayList(ids))
+                            .putStringArrayListExtra(LearningPracticeActivity.EXTRA_QUESTION_SCORES, ArrayList(mappings.map { it.score.toString() }))
+                            .putExtra(LearningPracticeActivity.EXTRA_SESSION_TITLE, exam.name)
+                            .putExtra(LearningPracticeActivity.EXTRA_SESSION_TYPE, exam.type.name)
+                            .putExtra(LearningPracticeActivity.EXTRA_DURATION_MINUTES, exam.durationMinutes)
+                            .putExtra(LearningPracticeActivity.EXTRA_EXAM_ID, exam.id)
+                            .putExtra(LearningPracticeActivity.EXTRA_TOTAL_SCORE, exam.totalScore)
+                    )
                 }
             }
         }
@@ -197,7 +217,14 @@ class LearningActivity : AppCompatActivity() {
                 val count = catalog.examQuestions.count { it.examId == exam.id }
                 val kind = if (exam.type == com.htanh.appvk.domain.learning.ExamType.EXAM) "Bài kiểm tra" else "Bài luyện tập"
                 val duration = if (exam.durationMinutes > 0) " • ${exam.durationMinutes} phút" else " • Không giới hạn thời gian"
-                LearningListItem(exam.id, exam.name, exam.description, "$kind • $count câu • ${exam.totalScore} điểm$duration", count > 0)
+                val availability = ExamSessionRules.availability(exam, Instant.now())
+                val stateLabel = when (availability) {
+                    ExamAvailability.AVAILABLE -> "Có thể bắt đầu"
+                    ExamAvailability.NOT_STARTED -> "Chưa đến thời gian mở"
+                    ExamAvailability.ENDED -> "Đã hết hạn"
+                    ExamAvailability.INVALID_SCHEDULE -> "Lịch mở bài không hợp lệ"
+                }
+                LearningListItem(exam.id, exam.name, exam.description, "$kind • $count câu • ${exam.totalScore} điểm$duration • $stateLabel", count > 0 && availability == ExamAvailability.AVAILABLE)
             }
             LearningLevel.QUESTIONS -> catalog.questions
                 .filter { question ->
