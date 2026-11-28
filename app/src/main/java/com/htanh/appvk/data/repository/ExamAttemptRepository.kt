@@ -159,7 +159,23 @@ class ExamAttemptRepository(
                     SetOptions.merge()
                 )
             } else if (type == "ESSAY") {
-                batch.delete(userRoot().collection(ESSAY_SUBMISSIONS).document("${attemptId}_${answer.questionId}"))
+                batch.set(
+                    userRoot().collection(ESSAY_SUBMISSIONS).document("${attemptId}_${answer.questionId}"),
+                    hashMapOf(
+                        "submission_id" to "${attemptId}_${answer.questionId}",
+                        "attempt_id" to attemptId,
+                        "uid" to uid,
+                        "exam_id" to examId,
+                        "question_id" to answer.questionId,
+                        "answer_text" to "",
+                        "maximum_score" to maxScore,
+                        "awarded_score" to null,
+                        "status" to "NOT_SUBMITTED",
+                        "graded_at" to null,
+                        "teacher_feedback" to null
+                    ),
+                    SetOptions.merge()
+                )
             }
         }
         batch.update(
