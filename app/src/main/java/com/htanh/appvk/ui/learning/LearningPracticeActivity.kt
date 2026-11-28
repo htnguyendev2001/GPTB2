@@ -219,11 +219,11 @@ class LearningPracticeActivity : AppCompatActivity() {
                 }.onSuccess { started ->
                     attemptId = started.id
                     deadlineAtEpochMillis = started.deadlineAtEpochMillis ?: deadlineAtEpochMillis
-                    started.persistenceTask.addOnFailureListener {
+                    started.persistenceTask?.addOnFailureListener {
                         Toast.makeText(applicationContext, R.string.exam_attempt_save_failed, Toast.LENGTH_LONG).show()
                     }
                 }.onFailure {
-                    Toast.makeText(this, R.string.exam_auth_required, Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, R.string.exam_attempt_save_failed, Toast.LENGTH_LONG).show()
                 }
             }
         }
