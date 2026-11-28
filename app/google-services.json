@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "423905578853",
+    "firebase_url": "https://nike-fbbd4-default-rtdb.firebaseio.com",
+    "project_id": "nike-fbbd4",
+    "storage_bucket": "nike-fbbd4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:423905578853:android:02121366d9badd6bbf1b8c",
+        "android_client_info": {
+          "package_name": "com.htanh.appvk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBi2KGuuMvGGNxd3kX5Ankae7x9GO9yEbA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
