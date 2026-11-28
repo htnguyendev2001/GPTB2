@@ -74,17 +74,21 @@ class LearningActivity : AppCompatActivity() {
                 )
                 LearningLevel.EXAMS -> {
                     val catalog = viewModel.state.value.catalog
-                    val exam = catalog.exams.firstOrNull { it.id == id } ?: return@LearningListAdapter
-                    val ids = catalog.examQuestions.filter { it.examId == id }
-                        .sortedWith(compareBy({ it.sortOrder }, { it.questionId })).map { it.questionId }
-                    if (ids.isNotEmpty()) startActivity(
-                        Intent(this, LearningPracticeActivity::class.java)
-                            .putExtra(LearningPracticeActivity.EXTRA_QUESTION_ID, ids.first())
-                            .putStringArrayListExtra(LearningPracticeActivity.EXTRA_QUESTION_IDS, ArrayList(ids))
-                            .putExtra(LearningPracticeActivity.EXTRA_SESSION_TITLE, exam.name)
-                            .putExtra(LearningPracticeActivity.EXTRA_SESSION_TYPE, exam.type.name)
-                            .putExtra(LearningPracticeActivity.EXTRA_DURATION_MINUTES, exam.durationMinutes)
-                    )
+                    val exam = catalog.exams.firstOrNull { it.id == id }
+                    if (exam != null) {
+                        val mappings = catalog.examQuestions.filter { it.examId == id }
+                            .sortedWith(compareBy({ it.sortOrder }, { it.questionId }))
+                        val ids = mappings.map { it.questionId }
+                        if (ids.isNotEmpty()) startActivity(
+                            Intent(this, LearningPracticeActivity::class.java)
+                                .putExtra(LearningPracticeActivity.EXTRA_QUESTION_ID, ids.first())
+                                .putStringArrayListExtra(LearningPracticeActivity.EXTRA_QUESTION_IDS, ArrayList(ids))
+                                .putStringArrayListExtra(LearningPracticeActivity.EXTRA_QUESTION_SCORES, ArrayList(mappings.map { it.score.toString() }))
+                                .putExtra(LearningPracticeActivity.EXTRA_SESSION_TITLE, exam.name)
+                                .putExtra(LearningPracticeActivity.EXTRA_SESSION_TYPE, exam.type.name)
+                                .putExtra(LearningPracticeActivity.EXTRA_DURATION_MINUTES, exam.durationMinutes)
+                        )
+                    }
                 }
             }
         }
