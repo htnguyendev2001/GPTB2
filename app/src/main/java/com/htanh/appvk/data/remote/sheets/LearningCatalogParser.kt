@@ -3,6 +3,9 @@ package com.htanh.appvk.data.remote.sheets
 import com.htanh.appvk.domain.learning.Chapter
 import com.htanh.appvk.domain.learning.LearningCatalog
 import com.htanh.appvk.domain.learning.LearningQuestion
+import com.htanh.appvk.domain.learning.LearningExam
+import com.htanh.appvk.domain.learning.ExamQuestion
+import com.htanh.appvk.domain.learning.ExamType
 import com.htanh.appvk.domain.learning.QuestionDifficulty
 import com.htanh.appvk.domain.learning.QuestionOption
 import com.htanh.appvk.domain.learning.QuestionType
@@ -15,7 +18,9 @@ object LearningCatalogParser {
         CHAPTERS to setOf("chapter_id", "subject_id", "name"),
         TOPICS to setOf("topic_id", "chapter_id", "name"),
         QUESTIONS to setOf("question_id", "topic_id", "question_type", "content"),
-        QUESTION_OPTIONS to setOf("option_id", "question_id", "is_correct")
+        QUESTION_OPTIONS to setOf("option_id", "question_id", "is_correct"),
+        EXAMS to setOf("exam_id", "name", "subject_id", "duration_minutes", "exam_type", "total_score", "is_active"),
+        EXAM_QUESTIONS to setOf("exam_id", "question_id", "sort_order", "score")
     )
 
     fun parse(tables: Map<String, SheetTable>): LearningCatalog {
@@ -33,12 +38,16 @@ object LearningCatalogParser {
         val topics = parseTopics(tables.getValue(TOPICS))
         val questions = parseQuestions(tables.getValue(QUESTIONS))
         val options = parseOptions(tables.getValue(QUESTION_OPTIONS))
+        val exams = parseExams(tables.getValue(EXAMS))
+        val examQuestions = parseExamQuestions(tables.getValue(EXAM_QUESTIONS))
 
         ensureUnique("SUBJECTS", subjects.map { it.id })
         ensureUnique("CHAPTERS", chapters.map { it.id })
         ensureUnique("TOPICS", topics.map { it.id })
         ensureUnique("QUESTIONS", questions.map { it.id })
         ensureUnique("QUESTION_OPTIONS", options.map { it.id })
+        ensureUnique("EXAMS", exams.map { it.id })
+        ensureUnique("EXAM_QUESTIONS", examQuestions.map { "${it.examId}::${it.questionId}" })
 
         val subjectIds = subjects.map { it.id }.toSet()
         val chapterIds = chapters.map { it.id }.toSet()
@@ -66,6 +75,13 @@ object LearningCatalogParser {
             }
         }
         options.forEach { if (it.questionId !in questionIds) invalid("QUESTION_OPTIONS", it.id, "unknown question_id '${it.questionId}'") }
+        exams.forEach { if (it.subjectId !in subjectIds) invalid("EXAMS", it.id, "unknown subject_id '${it.subjectId}'") }
+        val examIds = exams.map { it.id }.toSet()
+        examQuestions.forEach { mapping ->
+            if (mapping.examId !in examIds) invalid("EXAM_QUESTIONS", mapping.examId, "unknown exam_id")
+            if (mapping.questionId !in questionIds) invalid("EXAM_QUESTIONS", mapping.questionId, "unknown question_id")
+        }
+        exams.forEach { exam -> if (examQuestions.none { it.examId == exam.id }) invalid("EXAMS", exam.id, "exam must contain at least one question") }
 
         val optionsByQuestion = options.groupBy { it.questionId }
         questions.forEach { question ->
@@ -88,7 +104,9 @@ object LearningCatalogParser {
             chapters = chapters.sortedWith(compareBy<Chapter> { it.sortOrder }.thenBy { it.name.lowercase() }),
             topics = topics.sortedWith(compareBy<Topic> { it.sortOrder }.thenBy { it.name.lowercase() }),
             questions = questions.sortedWith(compareBy<LearningQuestion> { it.sortOrder }.thenBy { it.id }),
-            options = options.sortedWith(compareBy<QuestionOption> { it.sortOrder }.thenBy { it.id })
+            options = options.sortedWith(compareBy<QuestionOption> { it.sortOrder }.thenBy { it.id }),
+            exams = exams.sortedWith(compareBy<LearningExam> { it.name.lowercase() }.thenBy { it.id }),
+            examQuestions = examQuestions.sortedWith(compareBy<ExamQuestion> { it.examId }.thenBy { it.sortOrder }.thenBy { it.questionId })
         )
     }
 
@@ -175,6 +193,38 @@ object LearningCatalogParser {
         )
     }
 
+    private fun parseExams(table: SheetTable) = table.rows.mapIndexedNotNull { index, row ->
+        if (row.isBlankRow()) return@mapIndexedNotNull null
+        val type = when (row.required(table, "exam_type", EXAMS, index).uppercase()) {
+            "EXAM" -> ExamType.EXAM
+            "PRACTICE" -> ExamType.PRACTICE
+            else -> invalid(EXAMS, "row ${index + 2}", "exam_type must be EXAM or PRACTICE")
+        }
+        val duration = row.intValue(table, "duration_minutes", EXAMS, index, 0)
+        if (duration < 0 || (type == ExamType.EXAM && duration == 0)) invalid(EXAMS, "row ${index + 2}", "duration_minutes is invalid")
+        val totalScore = table.value(row, "total_score").toDoubleOrNull()
+            ?: invalid(EXAMS, "row ${index + 2}", "total_score must be a decimal number")
+        if (!totalScore.isFinite() || totalScore < 0.0) invalid(EXAMS, "row ${index + 2}", "total_score must be non-negative")
+        LearningExam(
+            row.required(table, "exam_id", EXAMS, index), row.required(table, "name", EXAMS, index),
+            table.value(row, "description"), row.required(table, "subject_id", EXAMS, index),
+            duration, type, totalScore, row.booleanValue(table, "is_active", EXAMS, index, true, required = true),
+            table.value(row, "start_at").takeIf(String::isNotBlank), table.value(row, "end_at").takeIf(String::isNotBlank)
+        )
+    }
+
+    private fun parseExamQuestions(table: SheetTable) = table.rows.mapIndexedNotNull { index, row ->
+        if (row.isBlankRow()) return@mapIndexedNotNull null
+        val score = table.value(row, "score").toDoubleOrNull()
+            ?: invalid(EXAM_QUESTIONS, "row ${index + 2}", "score must be a decimal number")
+        if (!score.isFinite() || score < 0.0) invalid(EXAM_QUESTIONS, "row ${index + 2}", "score must be non-negative")
+        ExamQuestion(
+            row.required(table, "exam_id", EXAM_QUESTIONS, index),
+            row.required(table, "question_id", EXAM_QUESTIONS, index),
+            row.intValue(table, "sort_order", EXAM_QUESTIONS, index, 0), score
+        )
+    }
+
     private fun ensureUnique(tab: String, ids: List<String>) {
         val duplicate = ids.groupingBy { it }.eachCount().entries.firstOrNull { it.value > 1 }?.key
         if (duplicate != null) invalid(tab, duplicate, "duplicate ID")
@@ -246,4 +296,6 @@ object LearningCatalogParser {
     const val TOPICS = "TOPICS"
     const val QUESTIONS = "QUESTIONS"
     const val QUESTION_OPTIONS = "QUESTION_OPTIONS"
+    const val EXAMS = "EXAMS"
+    const val EXAM_QUESTIONS = "EXAM_QUESTIONS"
 }
