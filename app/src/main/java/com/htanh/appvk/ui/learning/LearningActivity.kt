@@ -41,6 +41,7 @@ class LearningActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var itemsList: RecyclerView
     private lateinit var refreshButton: MaterialButton
+    private lateinit var examsButton: MaterialButton
     private lateinit var listAdapter: LearningListAdapter
     private var visibleQuestionIds: List<String> = emptyList()
 
@@ -56,6 +57,7 @@ class LearningActivity : AppCompatActivity() {
         progressBar = findViewById(R.id.learningProgress)
         itemsList = findViewById(R.id.learningItemsList)
         refreshButton = findViewById(R.id.btnLearningRefresh)
+        examsButton = findViewById(R.id.btnOpenExams)
 
         val repository = (application as HtavkApplication).learningContentRepository
         viewModel = ViewModelProvider(this, LearningViewModelFactory(repository))[LearningViewModel::class.java]
@@ -68,11 +70,22 @@ class LearningActivity : AppCompatActivity() {
                 LearningLevel.QUESTIONS -> startActivity(
                     Intent(this, LearningPracticeActivity::class.java)
                         .putExtra(LearningPracticeActivity.EXTRA_QUESTION_ID, id)
-                        .putStringArrayListExtra(
-                            LearningPracticeActivity.EXTRA_QUESTION_IDS,
-                            ArrayList(visibleQuestionIds)
-                        )
+                        .putStringArrayListExtra(LearningPracticeActivity.EXTRA_QUESTION_IDS, ArrayList(visibleQuestionIds))
                 )
+                LearningLevel.EXAMS -> {
+                    val catalog = viewModel.state.value.catalog
+                    val exam = catalog.exams.firstOrNull { it.id == id } ?: return@LearningListAdapter
+                    val ids = catalog.examQuestions.filter { it.examId == id }
+                        .sortedWith(compareBy({ it.sortOrder }, { it.questionId })).map { it.questionId }
+                    if (ids.isNotEmpty()) startActivity(
+                        Intent(this, LearningPracticeActivity::class.java)
+                            .putExtra(LearningPracticeActivity.EXTRA_QUESTION_ID, ids.first())
+                            .putStringArrayListExtra(LearningPracticeActivity.EXTRA_QUESTION_IDS, ArrayList(ids))
+                            .putExtra(LearningPracticeActivity.EXTRA_SESSION_TITLE, exam.name)
+                            .putExtra(LearningPracticeActivity.EXTRA_SESSION_TYPE, exam.type.name)
+                            .putExtra(LearningPracticeActivity.EXTRA_DURATION_MINUTES, exam.durationMinutes)
+                    )
+                }
             }
         }
         itemsList.layoutManager = LinearLayoutManager(this)
@@ -87,6 +100,7 @@ class LearningActivity : AppCompatActivity() {
         }
 
         refreshButton.setOnClickListener { viewModel.refresh() }
+        examsButton.setOnClickListener { viewModel.showExams() }
         toolbar.setNavigationOnClickListener {
             val state = viewModel.state.value
             if (state.level == LearningLevel.SUBJECTS || state.isStandaloneQuestionList) finish()
@@ -116,6 +130,7 @@ class LearningActivity : AppCompatActivity() {
                 ?: getString(R.string.learning_chapters_title)
             LearningLevel.TOPICS -> catalog.chapters.firstOrNull { it.id == state.selectedChapterId }?.name
                 ?: getString(R.string.learning_topics_title)
+            LearningLevel.EXAMS -> getString(R.string.learning_exams_title)
             LearningLevel.QUESTIONS -> when (state.questionTypeFilter) {
                 QuestionType.ESSAY -> getString(R.string.home_essay_title)
                 QuestionType.MCQ -> getString(R.string.home_practice_title)
@@ -174,6 +189,12 @@ class LearningActivity : AppCompatActivity() {
                         isNavigable = true
                     )
                 }
+            LearningLevel.EXAMS -> catalog.exams.filter { it.isActive }.map { exam ->
+                val count = catalog.examQuestions.count { it.examId == exam.id }
+                val kind = if (exam.type == com.htanh.appvk.domain.learning.ExamType.EXAM) "Bài kiểm tra" else "Bài luyện tập"
+                val duration = if (exam.durationMinutes > 0) " • ${exam.durationMinutes} phút" else " • Không giới hạn thời gian"
+                LearningListItem(exam.id, exam.name, exam.description, "$kind • $count câu • ${exam.totalScore} điểm$duration", count > 0)
+            }
             LearningLevel.QUESTIONS -> catalog.questions
                 .filter { question ->
                     question.isActive &&
@@ -184,6 +205,7 @@ class LearningActivity : AppCompatActivity() {
         }
 
         visibleQuestionIds = if (state.level == LearningLevel.QUESTIONS) rows.map { it.id } else emptyList()
+        examsButton.visibility = if (state.level == LearningLevel.SUBJECTS) View.VISIBLE else View.GONE
         listAdapter.submitList(rows)
         emptyView.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
         itemsList.visibility = if (rows.isEmpty()) View.GONE else View.VISIBLE
