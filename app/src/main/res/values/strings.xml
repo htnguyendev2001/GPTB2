@@ -38,4 +38,7 @@
     <string name="practice_option_image_description">Ảnh minh họa đáp án %1$s</string>
     <string name="practice_essay_hint">Nhập nội dung bài tự luận của bạn…</string>
     <string name="practice_essay_draft_notice">Bài làm hiện chỉ là bản nháp trên màn hình. Chức năng lưu và nộp bài sẽ được bổ sung khi tích hợp hồ sơ người dùng.</string>
+    <string name="progress_loading">Đang tải tổng quan học liệu…</string>
+    <string name="progress_catalog_summary">Kho học tập hiện có:\n• %1$d môn học\n• %2$d chương\n• %3$d chủ đề\n• %4$d câu hỏi</string>
+    <string name="progress_not_tracking">Lưu ý: Đây là thống kê nội dung có sẵn, chưa phải số liệu hoàn thành của bạn. Lịch sử làm bài, thời gian học và chuỗi ngày học liên tiếp chưa được ghi nhận ở phiên bản hiện tại.</string>
 </resources>
