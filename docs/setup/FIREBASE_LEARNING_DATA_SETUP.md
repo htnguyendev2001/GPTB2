@@ -8,7 +8,7 @@
 4. Enable Cloud Firestore in the Firebase project.
 5. Deploy the repository's `firestore.rules` to the target Firebase project.
 
-The Firebase Android BoM is pinned to `33.3.0` for this increment because the app's approved minimum SDK is API 21; newer Firebase Authentication releases raise the minimum Android API. The Google Services Gradle plugin is applied only when `app/google-services.json` exists. Without that file, the app still builds and the learning catalogue remains usable, but user-specific history is not initialized.
+The Firebase Android BoM is pinned to `33.3.0` and Firebase Auth is explicitly pinned to `22.3.1` because the app's approved minimum SDK is API 21; Firebase Auth `23.0.0` raises the minimum Android API to 23. Firestore remains BoM-managed. The Google Services Gradle plugin is applied only when `app/google-services.json` exists. Without that file, the app still builds and the learning catalogue remains usable, but user-specific history is not initialized.
 
 ## 2. Firestore data layout
 
