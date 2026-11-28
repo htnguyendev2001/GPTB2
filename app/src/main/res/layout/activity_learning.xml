@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/learningRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,22 +11,16 @@
     android:paddingEnd="20dp"
     android:paddingBottom="12dp">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnLearningBack"
-        style="@style/Widget.MaterialComponents.Button.TextButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/learning_back" />
-
-    <TextView
-        android:id="@+id/tvLearningTitle"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/learningToolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="@string/learning_subjects_title"
-        android:textColor="#172033"
-        android:textSize="26sp"
-        android:textStyle="bold" />
+        android:layout_height="?attr/actionBarSize"
+        android:background="@android:color/transparent"
+        android:elevation="0dp"
+        app:navigationIcon="@drawable/ic_arrow_back_24"
+        app:navigationContentDescription="@string/learning_back"
+        app:title="@string/learning_subjects_title"
+        app:titleTextColor="#172033" />
 
     <LinearLayout
         android:layout_width="match_parent"

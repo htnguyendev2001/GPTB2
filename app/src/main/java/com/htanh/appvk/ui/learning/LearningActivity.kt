@@ -14,7 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.button.MaterialButton
+import com.google.android.material.appbar.MaterialToolbar
 import com.htanh.appvk.HtavkApplication
 import com.htanh.appvk.R
 import com.htanh.appvk.domain.learning.LearningQuestion
@@ -28,19 +28,18 @@ import kotlinx.coroutines.launch
 class LearningActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_QUESTION_FILTER = "com.htanh.appvk.extra.QUESTION_FILTER"
-        const val FILTER_ALL = "all"
+        const val FILTER_MCQ = "mcq"
         const val FILTER_ESSAY = "essay"
     }
 
     private lateinit var viewModel: LearningViewModel
-    private lateinit var titleView: TextView
+    private lateinit var toolbar: MaterialToolbar
     private lateinit var syncStatusView: TextView
     private lateinit var errorView: TextView
     private lateinit var emptyView: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var itemsList: RecyclerView
-    private lateinit var backButton: MaterialButton
-    private lateinit var refreshButton: MaterialButton
+        private lateinit var refreshButton: MaterialButton
     private lateinit var listAdapter: LearningListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,14 +47,13 @@ class LearningActivity : AppCompatActivity() {
         setContentView(R.layout.activity_learning)
         applySystemBarInsets(findViewById(R.id.learningRoot))
 
-        titleView = findViewById(R.id.tvLearningTitle)
+        toolbar = findViewById(R.id.learningToolbar)
         syncStatusView = findViewById(R.id.tvSyncStatus)
         errorView = findViewById(R.id.tvLearningError)
         emptyView = findViewById(R.id.tvLearningEmpty)
         progressBar = findViewById(R.id.learningProgress)
         itemsList = findViewById(R.id.learningItemsList)
-        backButton = findViewById(R.id.btnLearningBack)
-        refreshButton = findViewById(R.id.btnLearningRefresh)
+                refreshButton = findViewById(R.id.btnLearningRefresh)
 
         val repository = (application as HtavkApplication).learningContentRepository
         viewModel = ViewModelProvider(this, LearningViewModelFactory(repository))[LearningViewModel::class.java]
@@ -76,14 +74,14 @@ class LearningActivity : AppCompatActivity() {
         itemsList.setHasFixedSize(false)
 
         val requestedFilter = intent.getStringExtra(EXTRA_QUESTION_FILTER)
-        if (requestedFilter == FILTER_ESSAY) {
-            viewModel.showQuestions(QuestionType.ESSAY)
-        } else if (requestedFilter == FILTER_ALL) {
-            viewModel.showQuestions()
+        when (requestedFilter) {
+            FILTER_MCQ -> viewModel.showQuestions(QuestionType.MCQ)
+            FILTER_ESSAY -> viewModel.showQuestions(QuestionType.ESSAY)
+            else -> Unit
         }
 
         refreshButton.setOnClickListener { viewModel.refresh() }
-        backButton.setOnClickListener {
+        toolbar.setNavigationOnClickListener {
             val state = viewModel.state.value
             if (state.level == LearningLevel.SUBJECTS || state.isStandaloneQuestionList) finish()
             else viewModel.navigateBack()
@@ -106,7 +104,7 @@ class LearningActivity : AppCompatActivity() {
 
     private fun render(state: LearningUiState) {
         val catalog = state.catalog
-        titleView.text = when (state.level) {
+        toolbar.title = when (state.level) {
             LearningLevel.SUBJECTS -> getString(R.string.learning_subjects_title)
             LearningLevel.CHAPTERS -> catalog.subjects.firstOrNull { it.id == state.selectedSubjectId }?.name
                 ?: getString(R.string.learning_chapters_title)
@@ -114,12 +112,12 @@ class LearningActivity : AppCompatActivity() {
                 ?: getString(R.string.learning_topics_title)
             LearningLevel.QUESTIONS -> when (state.questionTypeFilter) {
                 QuestionType.ESSAY -> getString(R.string.home_essay_title)
-                else -> if (state.isStandaloneQuestionList) getString(R.string.home_practice_title)
+                QuestionType.MCQ -> getString(R.string.home_practice_title)
+                null -> if (state.isStandaloneQuestionList) getString(R.string.learning_questions_title)
                     else catalog.topics.firstOrNull { it.id == state.selectedTopicId }?.name
                         ?: getString(R.string.learning_questions_title)
             }
         }
-        backButton.visibility = View.VISIBLE
         progressBar.visibility = if (state.isRefreshing) View.VISIBLE else View.GONE
         refreshButton.isEnabled = !state.isRefreshing
 
