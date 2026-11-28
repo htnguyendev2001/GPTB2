@@ -1,5 +1,6 @@
 package com.htanh.appvk.data.remote.sheets
 
+import android.content.Context
 import android.net.Uri
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +23,7 @@ class LearningContentSyncException(
 }
 
 class GoogleSheetsRemoteDataSource(
+    private val context: Context,
     private val spreadsheetId: String,
     private val apiKey: String
 ) : LearningContentRemoteDataSource {
@@ -31,6 +33,15 @@ class GoogleSheetsRemoteDataSource(
             throw LearningContentSyncException(
                 LearningContentSyncException.Category.CONFIGURATION,
                 "Configure htavk.sheets.spreadsheetId and htavk.sheets.apiKey in local.properties."
+            )
+        }
+
+        val androidIdentity = try {
+            AndroidApiKeyIdentity.from(context)
+        } catch (error: Exception) {
+            throw LearningContentSyncException(
+                LearningContentSyncException.Category.CONFIGURATION,
+                "Unable to read the Android app signing identity required for the restricted Google API key."
             )
         }
 
@@ -61,6 +72,8 @@ class GoogleSheetsRemoteDataSource(
             connection.connectTimeout = 15_000
             connection.readTimeout = 20_000
             connection.setRequestProperty("Accept", "application/json")
+            connection.setRequestProperty("X-Android-Package", androidIdentity.packageName)
+            connection.setRequestProperty("X-Android-Cert", androidIdentity.certificateSha1)
             val status = connection.responseCode
             val contentLength = connection.contentLengthLong
             if (contentLength > MAX_RESPONSE_BYTES) {
@@ -80,7 +93,9 @@ class GoogleSheetsRemoteDataSource(
                     status == 429 || status >= 500 -> LearningContentSyncException.Category.API
                     else -> LearningContentSyncException.Category.API
                 }
-                throw LearningContentSyncException(category, "Google Sheets API returned HTTP $status.")
+                val googleMessage = responseBody.googleApiErrorMessage()
+                val detail = googleMessage?.let { ": $it" }.orEmpty()
+                throw LearningContentSyncException(category, "Google Sheets API returned HTTP $status$detail")
             }
 
             val response = JSONObject(responseBody)
@@ -139,6 +154,15 @@ class GoogleSheetsRemoteDataSource(
             })
         }
     }
+
+    private fun String.googleApiErrorMessage(): String? = try {
+        JSONObject(this).optJSONObject("error")
+            ?.optString("message")
+            ?.takeIf { it.isNotBlank() && it != "null" }
+            ?.take(300)
+    } catch (_: Exception) {
+        null
+    }
 }
 
 internal fun InputStream.readUtf8Bounded(maxBytes: Long): String {
@@ -159,4 +183,3 @@ internal fun InputStream.readUtf8Bounded(maxBytes: Long): String {
     }
     return output.toString(Charsets.UTF_8.name())
 }
-
