@@ -208,8 +208,8 @@ object LearningCatalogParser {
         if (!totalScore.isFinite() || totalScore < 0.0) invalid(EXAMS, "row ${index + 2}", "total_score must be non-negative")
         val startAt = table.value(row, "start_at").takeIf(String::isNotBlank)
         val endAt = table.value(row, "end_at").takeIf(String::isNotBlank)
-        val parsedStart = startAt?.let(ExamSessionRules::parseInstant)
-        val parsedEnd = endAt?.let(ExamSessionRules::parseInstant)
+        val parsedStart = startAt?.let { ExamSessionRules.parseInstant(it) }
+        val parsedEnd = endAt?.let { ExamSessionRules.parseInstant(it) }
         if (startAt != null && parsedStart == null) invalid(EXAMS, "row ${index + 2}", "start_at must be an ISO-8601 timestamp with timezone")
         if (endAt != null && parsedEnd == null) invalid(EXAMS, "row ${index + 2}", "end_at must be an ISO-8601 timestamp with timezone")
         if (parsedStart != null && parsedEnd != null && !parsedStart.isBefore(parsedEnd)) {
