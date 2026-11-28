@@ -6,10 +6,8 @@ plugins {
     id 'com.google.devtools.ksp'
 }
 
-// Firebase is enabled only when the owner supplies the untracked google-services.json.
-if (file('google-services.json').exists()) {
-    apply plugin: 'com.google.gms.google-services'
-}
+// The supplied app/google-services.json is committed for the registered HTVA Vk package.
+apply plugin: 'com.google.gms.google-services'
 
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file("local.properties")
@@ -32,8 +30,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField "String", "LEARNING_CONTENT_SPREADSHEET_ID", "\"${sheetsSpreadsheetId}\""
-        buildConfigField "String", "GOOGLE_SHEETS_API_KEY", "\"${sheetsApiKey}\""
+        buildConfigField "String", "LEARNING_CONTENT_SPREADSHEET_ID", "\"\u0024{sheetsSpreadsheetId}\""
+        buildConfigField "String", "GOOGLE_SHEETS_API_KEY", "\"\u0024{sheetsApiKey}\""
     }
 
     buildFeatures {
@@ -61,13 +59,6 @@ android {
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     implementation platform('com.google.firebase:firebase-bom:33.3.0')
-    // Firebase BoM 33.3.0 selects Auth 23.0.0 (minSdk 23). Strictly pin the
-    // compatible Auth release so the app can keep its documented minSdk 21.
-    implementation('com.google.firebase:firebase-auth') {
-        version {
-            strictly '22.3.1'
-        }
-    }
     implementation 'com.google.firebase:firebase-firestore'
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'com.google.android.material:material:1.6.1'
