@@ -5,10 +5,12 @@ on:
     branches:
       - feat/htavk-kotlin-foundation
       - feat/learning-content-pipeline
+      - feat/exams-practice-pipeline
   pull_request:
     branches:
       - feat/htavk-kotlin-foundation
       - master
+      - main
 
 permissions:
   contents: read
