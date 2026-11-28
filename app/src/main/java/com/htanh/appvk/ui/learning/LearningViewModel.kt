@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class LearningLevel { SUBJECTS, CHAPTERS, TOPICS, QUESTIONS }
+enum class LearningLevel { SUBJECTS, CHAPTERS, TOPICS, QUESTIONS, EXAMS }
 
 data class LearningUiState(
     val catalog: LearningCatalog = LearningCatalog(),
@@ -123,6 +123,10 @@ class LearningViewModel(
         }
     }
 
+    fun showExams() {
+        mutableState.update { it.copy(level = LearningLevel.EXAMS, selectedSubjectId = null, selectedChapterId = null, selectedTopicId = null, questionTypeFilter = null, isStandaloneQuestionList = false) }
+    }
+
     fun showQuestions(type: QuestionType? = null) {
         mutableState.update {
             it.copy(
@@ -148,6 +152,7 @@ class LearningViewModel(
                     level = LearningLevel.CHAPTERS,
                     selectedChapterId = null
                 )
+                LearningLevel.EXAMS -> current.copy(level = LearningLevel.SUBJECTS)
                 LearningLevel.QUESTIONS -> if (current.isStandaloneQuestionList) {
                     current.copy(
                         level = LearningLevel.SUBJECTS,
