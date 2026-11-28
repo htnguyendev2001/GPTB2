@@ -107,6 +107,7 @@ class ExamAttemptRepository(
         val database = firestore ?: return null
         val answerData = hashMapOf<String, Any?>(
             "question_id" to answer.questionId,
+            "device_id" to deviceId,
             "question_type" to questionType,
             "selected_option_id" to answer.selectedOptionId,
             "essay_text" to answer.essayText,
@@ -180,6 +181,7 @@ class ExamAttemptRepository(
                 attempt.collection(ANSWERS).document(answer.questionId),
                 hashMapOf(
                     "question_id" to answer.questionId,
+                    "device_id" to deviceId,
                     "question_type" to type,
                     "selected_option_id" to answer.selectedOptionId,
                     "essay_text" to answer.essayText,
