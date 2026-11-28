@@ -50,7 +50,7 @@ class LearningDatabaseMigrationTest {
         }
 
         val migrated = Room.databaseBuilder(context, LearningDatabase::class.java, databaseName)
-            .addMigrations(LearningDatabase.MIGRATION_1_2)
+            .addMigrations(LearningDatabase.MIGRATION_1_2, LearningDatabase.MIGRATION_2_3)
             .allowMainThreadQueries()
             .build()
 
@@ -59,6 +59,8 @@ class LearningDatabaseMigrationTest {
             val subjects = dao.observeSubjects().first()
             val questions = dao.observeQuestions().first()
             val options = dao.observeOptions().first()
+            val exams = dao.observeExams().first()
+            val examQuestions = dao.observeExamQuestions().first()
 
             assertEquals("SUBJ_MATH", subjects.single().id)
             assertNull(subjects.single().iconName)
@@ -68,6 +70,8 @@ class LearningDatabaseMigrationTest {
             assertEquals("OPT_A", options.single().id)
             assertNull(options.single().label)
             assertNull(options.single().imageUrl)
+            assertEquals(emptyList<Any>(), exams)
+            assertEquals(emptyList<Any>(), examQuestions)
         } finally {
             migrated.close()
             context.deleteDatabase(databaseName)
