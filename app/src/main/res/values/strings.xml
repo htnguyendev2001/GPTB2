@@ -50,6 +50,7 @@
     <string name="exam_result_submitted">Bài làm đã được ghi nhận.</string>
     <string name="exam_result_close">Hoàn tất</string>
     <string name="exam_essay_notice">Câu trả lời tự luận sẽ được lưu và chuyển đến giáo viên để chấm sau khi em nộp bài.</string>
+    <string name="exam_attempt_save_failed">Không thể lưu lượt làm bài lên Firestore. Hãy kiểm tra cấu hình và quyền truy cập.</string>
     <string name="exam_answer_save_failed">Chưa đồng bộ được câu trả lời. Hãy kiểm tra kết nối mạng trước khi nộp bài nhé.</string>
     <string name="exam_submit_save_failed">Không thể đồng bộ kết quả lên máy chủ. Vui lòng kiểm tra kết nối và thử lại.</string>
     <string name="exam_leave_confirm_title">Em muốn rời bài kiểm tra?</string>
