@@ -1,6 +1,8 @@
 package com.htanh.appvk.ui.learning
 
 import android.os.Bundle
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
@@ -24,6 +26,7 @@ import com.htanh.appvk.domain.learning.QuestionOption
 import com.htanh.appvk.domain.learning.QuestionType
 import com.htanh.appvk.ui.applySystemBarInsets
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 class LearningPracticeActivity : AppCompatActivity() {
     private lateinit var questionTitle: TextView
@@ -35,11 +38,20 @@ class LearningPracticeActivity : AppCompatActivity() {
     private lateinit var essayNotice: TextView
     private lateinit var checkButton: MaterialButton
     private lateinit var feedback: TextView
-    private var renderedQuestion: LearningQuestion? = null
-    private var renderedOptions: List<QuestionOption>? = null
+    private lateinit var previousButton: MaterialButton
+    private lateinit var nextButton: MaterialButton
+    private lateinit var questionPosition: TextView
+    private lateinit var swipeDetector: GestureDetector
+
+    private var questionIds: List<String> = emptyList()
+    private var currentIndex = 0
+    private var catalogQuestions: Map<String, Pair<LearningQuestion, List<QuestionOption>>> = emptyMap()
     private var currentQuestion: LearningQuestion? = null
     private var currentOptions: List<QuestionOption> = emptyList()
     private var selectedOptionId: String? = null
+    private val selectedAnswers = mutableMapOf<String, String>()
+    private val essayDrafts = mutableMapOf<String, String>()
+    private val checkedQuestions = mutableSetOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,39 +67,93 @@ class LearningPracticeActivity : AppCompatActivity() {
         essayNotice = findViewById(R.id.tvEssayNotice)
         checkButton = findViewById(R.id.btnCheckAnswer)
         feedback = findViewById(R.id.tvAnswerFeedback)
+        previousButton = findViewById(R.id.btnPreviousQuestion)
+        nextButton = findViewById(R.id.btnNextQuestion)
+        questionPosition = findViewById(R.id.tvQuestionPosition)
+
+        val startQuestionId = intent.getStringExtra(EXTRA_QUESTION_ID)
+        val suppliedIds = intent.getStringArrayListExtra(EXTRA_QUESTION_IDS).orEmpty()
+        questionIds = suppliedIds.distinct().ifEmpty { listOfNotNull(startQuestionId) }
+        currentIndex = questionIds.indexOf(startQuestionId).takeIf { it >= 0 } ?: 0
 
         findViewById<MaterialButton>(R.id.btnPracticeBack).setOnClickListener { finish() }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() = finish()
         })
         checkButton.setOnClickListener { checkSelectedAnswer() }
+        previousButton.setOnClickListener { navigateBy(-1) }
+        nextButton.setOnClickListener { navigateBy(1) }
 
-        val questionId = intent.getStringExtra(EXTRA_QUESTION_ID)
-        if (questionId.isNullOrBlank()) {
-            showLoadError(getString(R.string.practice_question_missing))
-            return
-        }
+        swipeDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(e: MotionEvent): Boolean = true
+
+            override fun onFling(
+                e1: MotionEvent?,
+                e2: MotionEvent,
+                velocityX: Float,
+                velocityY: Float
+            ): Boolean {
+                if (e1 == null) return false
+                val deltaX = e2.x - e1.x
+                val deltaY = e2.y - e1.y
+                if (abs(deltaX) < dp(72) || abs(deltaX) < abs(deltaY) * 1.3f) return false
+                navigateBy(if (deltaX < 0) 1 else -1)
+                return true
+            }
+        })
 
         val repository = (application as HtavkApplication).learningContentRepository
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 repository.observeCatalog().collect { catalog ->
-                    val question = catalog.questions.firstOrNull { it.id == questionId }
-                    if (question == null) {
-                        showLoadError(getString(R.string.practice_question_unavailable))
-                    } else {
-                        val options = catalog.options.filter { it.questionId == question.id }
-                            .sortedBy { it.sortOrder }
-                        bindQuestion(question, options)
+                    catalogQuestions = catalog.questions.associate { question ->
+                        question.id to (question to catalog.options
+                            .filter { it.questionId == question.id }
+                            .sortedBy { it.sortOrder })
                     }
+                    renderCurrentQuestion()
                 }
             }
         }
     }
 
-    private fun bindQuestion(question: LearningQuestion, options: List<QuestionOption>) {
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        swipeDetector.onTouchEvent(event)
+        return super.dispatchTouchEvent(event)
+    }
+
+    private fun navigateBy(offset: Int) {
+        val nextIndex = currentIndex + offset
+        if (nextIndex !in questionIds.indices) return
+        saveCurrentDraft()
+        currentIndex = nextIndex
+        renderCurrentQuestion()
+    }
+
+    private fun saveCurrentDraft() {
+        val questionId = currentQuestion?.id ?: return
+        selectedOptionId?.let { selectedAnswers[questionId] = it }
+        if (currentQuestion?.type == QuestionType.ESSAY) {
+            essayDrafts[questionId] = essayAnswer.text?.toString().orEmpty()
+        }
+    }
+
+    private fun renderCurrentQuestion() {
+        val questionId = questionIds.getOrNull(currentIndex)
+        val entry = questionId?.let(catalogQuestions::get)
+        if (entry == null) {
+            showLoadError(
+                if (questionId == null) getString(R.string.practice_question_missing)
+                else getString(R.string.practice_question_unavailable)
+            )
+            updateNavigation()
+            return
+        }
+
+        val (question, options) = entry
         currentQuestion = question
         currentOptions = options
+        selectedOptionId = selectedAnswers[question.id]
         questionTitle.text = getString(R.string.practice_question_title)
         questionMetadata.visibility = View.VISIBLE
         questionMetadata.text = getString(
@@ -98,51 +164,66 @@ class LearningPracticeActivity : AppCompatActivity() {
         questionContent.text = question.content
         LearningImageLoader.load(questionImage, question.imageUrl, lifecycleScope)
         questionImage.visibility = if (LearningImageLoader.supportsUrl(question.imageUrl)) View.VISIBLE else View.GONE
+
         val isEssay = question.type == QuestionType.ESSAY
         optionsGroup.visibility = if (isEssay) View.GONE else View.VISIBLE
         essayAnswer.visibility = if (isEssay) View.VISIBLE else View.GONE
         essayNotice.visibility = if (isEssay) View.VISIBLE else View.GONE
         checkButton.visibility = if (isEssay) View.GONE else View.VISIBLE
+        essayAnswer.setText(essayDrafts[question.id].orEmpty())
 
-        if (renderedQuestion != question || renderedOptions != options) {
-            renderedQuestion = question
-            renderedOptions = options.toList()
-            feedback.visibility = View.GONE
-            selectedOptionId = null
-            optionsGroup.removeAllViews()
-            options.forEach { option ->
-                val optionRow = LinearLayout(this).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    gravity = Gravity.CENTER_VERTICAL
-                    setPadding(8, 4, 8, 4)
-                }
-                val radioButton = RadioButton(this).apply {
-                    id = View.generateViewId()
-                    tag = option.id
-                    text = listOfNotNull(option.label?.takeIf(String::isNotBlank), option.text).joinToString(". ")
-                    textSize = 16f
-                    setPadding(8, 12, 8, 12)
-                    layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-                    setOnClickListener { selectOption(option.id) }
-                }
-                optionRow.addView(radioButton)
-
-                if (LearningImageLoader.supportsUrl(option.imageUrl)) {
-                    val optionImage = ImageView(this).apply {
-                        contentDescription = option.label?.let { getString(R.string.practice_option_image_description, it) }
-                            ?: getString(R.string.practice_option_image)
-                        scaleType = ImageView.ScaleType.CENTER_CROP
-                        layoutParams = LinearLayout.LayoutParams(dp(88), dp(72)).apply {
-                            marginStart = dp(8)
-                        }
-                    }
-                    optionRow.addView(optionImage)
-                    LearningImageLoader.load(optionImage, option.imageUrl, lifecycleScope)
-                }
-                optionRow.setOnClickListener { selectOption(option.id) }
-                optionsGroup.addView(optionRow)
+        optionsGroup.removeAllViews()
+        options.forEach { option ->
+            val optionRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(8, 4, 8, 4)
             }
-            essayAnswer.text?.clear()
+            val radioButton = RadioButton(this).apply {
+                id = View.generateViewId()
+                tag = option.id
+                text = listOfNotNull(option.label?.takeIf(String::isNotBlank), option.text).joinToString(". ")
+                textSize = 16f
+                setPadding(8, 12, 8, 12)
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                isChecked = option.id == selectedOptionId
+                setOnClickListener { selectOption(option.id) }
+            }
+            optionRow.addView(radioButton)
+
+            if (LearningImageLoader.supportsUrl(option.imageUrl)) {
+                val optionImage = ImageView(this).apply {
+                    contentDescription = option.label?.let { getString(R.string.practice_option_image_description, it) }
+                        ?: getString(R.string.practice_option_image)
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                    layoutParams = LinearLayout.LayoutParams(dp(88), dp(72)).apply {
+                        marginStart = dp(8)
+                    }
+                }
+                optionRow.addView(optionImage)
+                LearningImageLoader.load(optionImage, option.imageUrl, lifecycleScope)
+            }
+            optionRow.setOnClickListener { selectOption(option.id) }
+            optionsGroup.addView(optionRow)
+        }
+
+        if (question.id in checkedQuestions) {
+            feedback.visibility = View.VISIBLE
+        } else {
+            feedback.visibility = View.GONE
+        }
+        updateNavigation()
+    }
+
+    private fun updateNavigation() {
+        val total = questionIds.size
+        questionPosition.text = if (total == 0) "0/0" else getString(R.string.practice_question_position, currentIndex + 1, total)
+        previousButton.isEnabled = currentIndex > 0
+        nextButton.isEnabled = currentIndex < total - 1
+        nextButton.text = if (currentIndex == total - 1) {
+            getString(R.string.practice_last_question)
+        } else {
+            getString(R.string.practice_next_question)
         }
     }
 
@@ -182,11 +263,10 @@ class LearningPracticeActivity : AppCompatActivity() {
             )
         )
         feedback.visibility = View.VISIBLE
+        checkedQuestions += question.id
     }
 
     private fun showLoadError(message: String) {
-        renderedQuestion = null
-        renderedOptions = null
         currentQuestion = null
         currentOptions = emptyList()
         selectedOptionId = null
@@ -204,17 +284,20 @@ class LearningPracticeActivity : AppCompatActivity() {
 
     private fun selectOption(optionId: String) {
         selectedOptionId = optionId
+        currentQuestion?.id?.let { selectedAnswers[it] = optionId }
         for (index in 0 until optionsGroup.childCount) {
             val row = optionsGroup.getChildAt(index) as? LinearLayout ?: continue
             val radio = row.getChildAt(0) as? RadioButton ?: continue
             radio.isChecked = radio.tag == optionId
         }
         feedback.visibility = View.GONE
+        currentQuestion?.id?.let(checkedQuestions::remove)
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     companion object {
         const val EXTRA_QUESTION_ID = "com.htanh.appvk.extra.QUESTION_ID"
+        const val EXTRA_QUESTION_IDS = "com.htanh.appvk.extra.QUESTION_IDS"
     }
 }
