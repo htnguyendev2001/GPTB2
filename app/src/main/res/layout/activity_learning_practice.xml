@@ -11,12 +11,13 @@
         android:id="@+id/practiceToolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@android:color/transparent"
-        android:elevation="0dp"
+        android:background="@color/app_toolbar_orange"
+        android:elevation="2dp"
         app:navigationIcon="@drawable/ic_arrow_back_24"
+        app:navigationIconTint="@color/white"
         app:navigationContentDescription="@string/learning_back"
         app:title="@string/practice_toolbar_title"
-        app:titleTextColor="#172033" />
+        app:titleTextColor="@color/white" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -43,9 +44,9 @@
             android:textStyle="bold" />
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/practiceQuestionCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/practiceQuestionCard"
             android:layout_marginTop="16dp"
             app:cardBackgroundColor="#FFFFFF"
             app:cardCornerRadius="16dp"
@@ -161,7 +162,6 @@
             android:textColor="#172033"
             android:textSize="14sp"
             android:visibility="gone" />
-
       </LinearLayout>
     </ScrollView>
 </LinearLayout>
