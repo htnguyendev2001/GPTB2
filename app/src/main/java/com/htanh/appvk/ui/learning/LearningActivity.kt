@@ -42,6 +42,7 @@ class LearningActivity : AppCompatActivity() {
     private lateinit var itemsList: RecyclerView
     private lateinit var refreshButton: MaterialButton
     private lateinit var listAdapter: LearningListAdapter
+    private var visibleQuestionIds: List<String> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +68,10 @@ class LearningActivity : AppCompatActivity() {
                 LearningLevel.QUESTIONS -> startActivity(
                     Intent(this, LearningPracticeActivity::class.java)
                         .putExtra(LearningPracticeActivity.EXTRA_QUESTION_ID, id)
+                        .putStringArrayListExtra(
+                            LearningPracticeActivity.EXTRA_QUESTION_IDS,
+                            ArrayList(visibleQuestionIds)
+                        )
                 )
             }
         }
@@ -178,6 +183,7 @@ class LearningActivity : AppCompatActivity() {
                 .map { question -> question.toListItem(catalog.options.count { it.questionId == question.id }) }
         }
 
+        visibleQuestionIds = if (state.level == LearningLevel.QUESTIONS) rows.map { it.id } else emptyList()
         listAdapter.submitList(rows)
         emptyView.visibility = if (rows.isEmpty()) View.VISIBLE else View.GONE
         itemsList.visibility = if (rows.isEmpty()) View.GONE else View.VISIBLE
