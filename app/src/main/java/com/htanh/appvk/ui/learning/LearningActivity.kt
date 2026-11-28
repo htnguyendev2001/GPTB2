@@ -15,6 +15,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
 import com.htanh.appvk.HtavkApplication
 import com.htanh.appvk.R
 import com.htanh.appvk.domain.learning.LearningQuestion
@@ -39,7 +40,7 @@ class LearningActivity : AppCompatActivity() {
     private lateinit var emptyView: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var itemsList: RecyclerView
-        private lateinit var refreshButton: MaterialButton
+    private lateinit var refreshButton: MaterialButton
     private lateinit var listAdapter: LearningListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,7 +54,7 @@ class LearningActivity : AppCompatActivity() {
         emptyView = findViewById(R.id.tvLearningEmpty)
         progressBar = findViewById(R.id.learningProgress)
         itemsList = findViewById(R.id.learningItemsList)
-                refreshButton = findViewById(R.id.btnLearningRefresh)
+        refreshButton = findViewById(R.id.btnLearningRefresh)
 
         val repository = (application as HtavkApplication).learningContentRepository
         viewModel = ViewModelProvider(this, LearningViewModelFactory(repository))[LearningViewModel::class.java]
