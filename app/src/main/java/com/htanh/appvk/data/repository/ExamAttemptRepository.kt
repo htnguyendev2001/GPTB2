@@ -104,10 +104,11 @@ class ExamAttemptRepository(
                     "maximum_score" to maximumScore,
                     "awarded_score" to null,
                     "status" to "DRAFT",
-                    "created_at" to FieldValue.serverTimestamp(),
+                    "updated_at" to FieldValue.serverTimestamp(),
                     "graded_at" to null,
                     "teacher_feedback" to null
-                )
+                ),
+                SetOptions.merge()
             )
         }
         return batch.commit()
@@ -154,7 +155,8 @@ class ExamAttemptRepository(
                         "status" to "PENDING_REVIEW",
                         "submitted_at" to FieldValue.serverTimestamp(),
                         "graded_at" to null,
-                        "teacher_feedback" to null
+                        "teacher_feedback" to null,
+                        "updated_at" to FieldValue.serverTimestamp()
                     ),
                     SetOptions.merge()
                 )
