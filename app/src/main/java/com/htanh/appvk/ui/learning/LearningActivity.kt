@@ -108,6 +108,7 @@ class LearningActivity : AppCompatActivity() {
                             .putExtra(LearningPracticeActivity.EXTRA_DURATION_MINUTES, exam.durationMinutes)
                             .putExtra(LearningPracticeActivity.EXTRA_EXAM_ID, exam.id)
                             .putExtra(LearningPracticeActivity.EXTRA_TOTAL_SCORE, exam.totalScore)
+                            .putExtra(LearningPracticeActivity.EXTRA_END_AT, exam.endAt)
                     )
                 }
             }
