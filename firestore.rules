@@ -41,7 +41,7 @@ service cloud.firestore {
       allow update: if owns(uid)
         && learnerEssayFieldsAreSafe()
         && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(["answer_text", "maximum_score", "status", "submitted_at"]);
+          .hasOnly(["answer_text", "maximum_score", "status", "submitted_at", "updated_at"]);
       allow delete: if false;
     }
   }
