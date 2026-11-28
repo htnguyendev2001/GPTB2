@@ -17,7 +17,7 @@ class HtavkApplication : Application() {
             applicationContext,
             LearningDatabase::class.java,
             "htavk_learning_content.db"
-        ).addMigrations(LearningDatabase.MIGRATION_1_2).build()
+        ).addMigrations(LearningDatabase.MIGRATION_1_2, LearningDatabase.MIGRATION_2_3).build()
 
         val remoteDataSource = GoogleSheetsRemoteDataSource(
             context = applicationContext,
