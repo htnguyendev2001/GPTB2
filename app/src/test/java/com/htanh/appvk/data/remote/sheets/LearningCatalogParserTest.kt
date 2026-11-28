@@ -65,7 +65,15 @@ class LearningCatalogParserTest {
                     listOf("OPT_A", "Q_01", "A", "4", "https://example.com/a.png", "TRUE", "1"),
                     listOf("OPT_B", "Q_01", "B", "5", "", "FALSE", "2")
                 )
-            )
+            ),
+            LearningCatalogParser.EXAMS to table(LearningCatalogParser.EXAMS, listOf(
+                listOf("exam_id", "name", "subject_id", "duration_minutes", "exam_type", "total_score", "is_active"),
+                listOf("EXAM_01", "Bài kiểm tra", "SUBJ_MATH", "45", "EXAM", "10", "TRUE")
+            )),
+            LearningCatalogParser.EXAM_QUESTIONS to table(LearningCatalogParser.EXAM_QUESTIONS, listOf(
+                listOf("exam_id", "question_id", "sort_order", "score"),
+                listOf("EXAM_01", "Q_01", "1", "10")
+            ))
         )
 
         val catalog = LearningCatalogParser.parse(tables)
