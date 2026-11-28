@@ -46,6 +46,7 @@ class LearningPracticeActivity : AppCompatActivity() {
 
     private var questionIds: List<String> = emptyList()
     private var currentIndex = 0
+    private var examQuestionScores: Map<String, Double> = emptyMap()
     private var catalogQuestions: Map<String, Pair<LearningQuestion, List<QuestionOption>>> = emptyMap()
     private var currentQuestion: LearningQuestion? = null
     private var currentOptions: List<QuestionOption> = emptyList()
@@ -75,9 +76,12 @@ class LearningPracticeActivity : AppCompatActivity() {
         val startQuestionId = intent.getStringExtra(EXTRA_QUESTION_ID)
         val suppliedIds = intent.getStringArrayListExtra(EXTRA_QUESTION_IDS).orEmpty()
         questionIds = suppliedIds.distinct().ifEmpty { listOfNotNull(startQuestionId) }
+        val suppliedScores = intent.getStringArrayListExtra(EXTRA_QUESTION_SCORES).orEmpty()
+        examQuestionScores = questionIds.mapIndexedNotNull { index, id ->
+            suppliedScores.getOrNull(index)?.toDoubleOrNull()?.let { id to it }
+        }.toMap()
         currentIndex = questionIds.indexOf(startQuestionId).takeIf { it >= 0 } ?: 0
 
-        intent.getStringExtra(EXTRA_SESSION_TITLE)?.takeIf(String::isNotBlank)?.let { toolbar.title = it }
         toolbar.setNavigationOnClickListener { finish() }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() = finish()
@@ -157,11 +161,15 @@ class LearningPracticeActivity : AppCompatActivity() {
         currentOptions = options
         selectedOptionId = selectedAnswers[question.id]
         questionMetadata.visibility = View.VISIBLE
+        val sessionType = intent.getStringExtra(EXTRA_SESSION_TYPE)
+        val displayedScore = examQuestionScores[question.id] ?: question.points
+        val durationMinutes = intent.getIntExtra(EXTRA_DURATION_MINUTES, 0)
         questionMetadata.text = getString(
             R.string.practice_question_metadata,
             question.difficulty.name,
-            question.points.toString()
-        ) + question.estimatedTimeSeconds?.let { " • ${it}s" }.orEmpty()
+            displayedScore.toString()
+        ) + question.estimatedTimeSeconds?.let { " • ${it}s" }.orEmpty() +
+            if (sessionType == "EXAM" && durationMinutes > 0) " • $durationMinutes phút" else ""
         questionContent.text = question.content
         LearningImageLoader.load(questionImage, question.imageUrl, lifecycleScope)
         questionImage.visibility = if (LearningImageLoader.supportsUrl(question.imageUrl)) View.VISIBLE else View.GONE
@@ -299,8 +307,6 @@ class LearningPracticeActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_QUESTION_ID = "com.htanh.appvk.extra.QUESTION_ID"
         const val EXTRA_QUESTION_IDS = "com.htanh.appvk.extra.QUESTION_IDS"
-        const val EXTRA_SESSION_TITLE = "com.htanh.appvk.extra.SESSION_TITLE"
-        const val EXTRA_SESSION_TYPE = "com.htanh.appvk.extra.SESSION_TYPE"
-        const val EXTRA_DURATION_MINUTES = "com.htanh.appvk.extra.DURATION_MINUTES"
+        const val EXTRA_QUESTION_SCORES = "com.htanh.appvk.extra.QUESTION_SCORES"
     }
 }
