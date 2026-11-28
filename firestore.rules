@@ -42,7 +42,7 @@ service cloud.firestore {
         && learnerEssayFieldsAreSafe()
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(["answer_text", "maximum_score", "status", "submitted_at"]);
-      allow delete: if owns(uid) && resource.data.status == "DRAFT";
+      allow delete: if owns(uid) && (resource == null || resource.data.status == "DRAFT");
     }
   }
 }
