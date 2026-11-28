@@ -188,7 +188,7 @@ class ExamAttemptRepository(
 
     companion object {
         const val ROOT_COLLECTION = "HTVAData"
-        const val ATTEMPTS = "EXAM_ATTEMPTS"
+        const val ATTEMPTS = "LEARNING_ATTEMPTS"
         const val ESSAY_ATTEMPTS = "ESSAY_ATTEMPTS"
         const val ESSAY_SUBMISSIONS = "ESSAY_SUBMISSIONS"
         const val ANSWERS = "ANSWERS"
