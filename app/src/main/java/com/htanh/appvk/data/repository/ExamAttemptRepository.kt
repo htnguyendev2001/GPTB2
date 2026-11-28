@@ -12,7 +12,8 @@ import java.util.UUID
 
 data class StartedExamAttempt(
     val id: String,
-    val deadlineAtEpochMillis: Long?
+    val deadlineAtEpochMillis: Long?,
+    val persistenceTask: Task<Void>
 )
 
 class ExamAttemptRepository(
@@ -64,8 +65,8 @@ class ExamAttemptRepository(
                 "grading_status" to "PENDING"
             ))
         }
-        batch.commit()
-        return StartedExamAttempt(attemptId, deadline)
+        val persistenceTask = batch.commit()
+        return StartedExamAttempt(attemptId, deadline, persistenceTask)
     }
 
     fun saveAnswer(
@@ -171,7 +172,7 @@ class ExamAttemptRepository(
                 "updated_at" to FieldValue.serverTimestamp()
             )
         )
-        if (result.pendingEssayCount > 0) {
+        if (questionTypes.values.any { it == "ESSAY" }) {
             batch.update(
                 userRoot().collection(ESSAY_ATTEMPTS).document(attemptId),
                 mapOf(
