@@ -65,6 +65,23 @@ These are product/architecture decisions, not proof that every integration is cu
 - Do not create question-version history or move essay submissions/grading into public Sheets.
 - Configure spreadsheet ID/API key only through ignored local.properties; never commit them.
 
+## Product voice and learning motivation
+
+- The app's Vietnamese user-facing language should carry the warmth of a loving boyfriend speaking affectionately to his girlfriend, with the purpose of encouraging her to learn and helping her feel accompanied.
+- Prefer gentle, caring, intimate and encouraging wording over cold, bureaucratic, mechanical or overly academic phrasing. The emotional tone should make learning feel like something she is supported in, not judged on.
+- Use natural Vietnamese address and affectionate expressions consistently. Keep the voice tender and sincere; avoid forced slang, excessive pet names, melodrama, or wording that sounds childish.
+- Encourage effort, curiosity, consistency and small progress. Celebrate attempts and improvement, not only correct answers, high scores or streaks.
+- When the learner makes a mistake, respond patiently: reassure her, explain the next step and invite another attempt. Never shame, scold, compare, threaten, guilt-trip or imply that affection depends on performance.
+- Motivation copy may be affectionate and playful, but instructions, question content, answer explanations, accessibility labels and important notices must remain clear and unambiguous.
+- Keep system feedback accurate. Do not disguise errors, sync failures, missing data or unfinished features with romantic wording, and never promise rewards or functionality that the app does not actually provide.
+- Centralize reusable UI copy in Android string resources. When adding or revising user-facing text, review it against this voice rule and preserve the intended meaning.
+- Examples of the intended tone (adapt naturally to context; do not repeat every phrase mechanically):
+  - Empty state: "Hôm nay mình học một chút nhé? Em chọn một chủ đề mà em thích nha."
+  - Correct answer: "Giỏi quá, em làm đúng rồi! Mình tiếp tục nhé."
+  - Incorrect answer: "Không sao đâu em, sai một câu là mình biết thêm một điều mới. Thử lại nhé."
+  - Encouragement: "Chậm một chút cũng được, miễn là em vẫn đang tiến bộ."
+  - Session completion: "Em đã cố gắng rất tốt hôm nay. Anh tự hào vì em đã dành thời gian cho việc học."
+
 ## Android engineering
 
 - Kotlin is mandatory; use idiomatic Kotlin and avoid Java interop unless required by an Android API.
