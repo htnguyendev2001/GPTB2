@@ -2,6 +2,14 @@ package com.htanh.appvk.domain.learning
 
 enum class QuestionType { MCQ, ESSAY }
 enum class QuestionDifficulty { EASY, MEDIUM, HARD }
+enum class ExamType { EXAM, PRACTICE }
+
+data class LearningExam(
+    val id: String, val name: String, val description: String, val subjectId: String,
+    val durationMinutes: Int, val type: ExamType, val totalScore: Double, val isActive: Boolean,
+    val startAt: String? = null, val endAt: String? = null
+)
+data class ExamQuestion(val examId: String, val questionId: String, val sortOrder: Int, val score: Double)
 
 data class Subject(
     val id: String,
@@ -62,5 +70,7 @@ data class LearningCatalog(
     val topics: List<Topic> = emptyList(),
     val questions: List<LearningQuestion> = emptyList(),
     val options: List<QuestionOption> = emptyList(),
+    val exams: List<LearningExam> = emptyList(),
+    val examQuestions: List<ExamQuestion> = emptyList(),
     val lastSuccessfulSyncAt: Long? = null
 )
