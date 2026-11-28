@@ -33,7 +33,7 @@ service cloud.firestore {
           && request.resource.data.awarded_score == null
           && request.resource.data.graded_at == null
           && request.resource.data.teacher_feedback == null
-          && request.resource.data.status in ["DRAFT", "PENDING_REVIEW"];
+          && request.resource.data.status in ["DRAFT", "PENDING_REVIEW", "NOT_SUBMITTED"];
       }
 
       allow read: if owns(uid);
@@ -42,7 +42,7 @@ service cloud.firestore {
         && learnerEssayFieldsAreSafe()
         && request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(["answer_text", "maximum_score", "status", "submitted_at"]);
-      allow delete: if owns(uid) && (resource == null || resource.data.status == "DRAFT");
+      allow delete: if false;
     }
   }
 }
