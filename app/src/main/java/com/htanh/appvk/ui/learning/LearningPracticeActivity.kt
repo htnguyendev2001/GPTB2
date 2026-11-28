@@ -207,8 +207,8 @@ class LearningPracticeActivity : AppCompatActivity() {
             optionsGroup.addView(optionRow)
         }
 
-        if (question.id in checkedQuestions) {
-            feedback.visibility = View.VISIBLE
+        if (question.id in checkedQuestions && selectedOptionId != null) {
+            checkSelectedAnswer()
         } else {
             feedback.visibility = View.GONE
         }
