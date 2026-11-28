@@ -4,6 +4,8 @@ import androidx.room.withTransaction
 import com.htanh.appvk.data.local.LearningDatabase
 import com.htanh.appvk.data.local.entity.ChapterEntity
 import com.htanh.appvk.data.local.entity.LearningQuestionEntity
+import com.htanh.appvk.data.local.entity.LearningExamEntity
+import com.htanh.appvk.data.local.entity.ExamQuestionEntity
 import com.htanh.appvk.data.local.entity.QuestionOptionEntity
 import com.htanh.appvk.data.local.entity.SubjectEntity
 import com.htanh.appvk.data.local.entity.SyncMetadataEntity
@@ -42,13 +44,13 @@ class LearningContentRepositoryImpl(
         ) { questions, options ->
             questions to options
         }
-        val cachedCatalog = combine(hierarchy, questionContent) { tree, questionData ->
+        val allContent = combine(questionContent, combine(dao.observeExams(), dao.observeExamQuestions()) { exams, mappings -> exams to mappings }) { questions, exams -> Triple(questions.first, questions.second, exams) }
+        val cachedCatalog = combine(hierarchy, allContent) { tree, content ->
             LearningCatalog(
-                subjects = tree.first.map { it.toDomain() },
-                chapters = tree.second.map { it.toDomain() },
-                topics = tree.third.map { it.toDomain() },
-                questions = questionData.first.map { it.toDomain() },
-                options = questionData.second.map { it.toDomain() }
+                subjects = tree.first.map { it.toDomain() }, chapters = tree.second.map { it.toDomain() },
+                topics = tree.third.map { it.toDomain() }, questions = content.first.map { it.toDomain() },
+                options = content.second.map { it.toDomain() }, exams = content.third.first.map { it.toDomain() },
+                examQuestions = content.third.second.map { it.toDomain() }
             )
         }
         return combine(cachedCatalog, dao.observeMetadata(LAST_SUCCESSFUL_SYNC_KEY)) { catalog, syncTimestamp ->
@@ -62,6 +64,8 @@ class LearningContentRepositoryImpl(
                 val catalog = remoteDataSource.fetchCatalog()
                 val syncedAt = System.currentTimeMillis()
                 database.withTransaction {
+                    dao.clearExamQuestions()
+                    dao.clearExams()
                     dao.clearOptions()
                     dao.clearQuestions()
                     dao.clearTopics()
@@ -72,6 +76,8 @@ class LearningContentRepositoryImpl(
                     dao.insertTopics(catalog.topics.map { it.toEntity() })
                     dao.insertQuestions(catalog.questions.map { it.toEntity() })
                     dao.insertOptions(catalog.options.map { it.toEntity() })
+                    dao.insertExams(catalog.exams.map { it.toEntity() })
+                    dao.insertExamQuestions(catalog.examQuestions.map { it.toEntity() })
                     dao.upsertMetadata(SyncMetadataEntity(LAST_SUCCESSFUL_SYNC_KEY, syncedAt.toString()))
                 }
                 LearningContentSyncResult.Success(syncedAt)
@@ -99,6 +105,13 @@ class LearningContentRepositoryImpl(
         LearningContentSyncException.Category.API -> LearningContentSyncResult.Category.API
         LearningContentSyncException.Category.INVALID_CONTENT -> LearningContentSyncResult.Category.INVALID_CONTENT
     }
+
+    private fun LearningExamEntity.toDomain() = com.htanh.appvk.domain.learning.LearningExam(
+        id, name, description, subjectId, durationMinutes, com.htanh.appvk.domain.learning.ExamType.valueOf(type), totalScore, isActive, startAt, endAt
+    )
+    private fun ExamQuestionEntity.toDomain() = com.htanh.appvk.domain.learning.ExamQuestion(examId, questionId, sortOrder, score)
+    private fun com.htanh.appvk.domain.learning.LearningExam.toEntity() = LearningExamEntity(id, name, description, subjectId, durationMinutes, type.name, totalScore, isActive, startAt, endAt)
+    private fun com.htanh.appvk.domain.learning.ExamQuestion.toEntity() = ExamQuestionEntity(examId, questionId, sortOrder, score)
 
     private fun SubjectEntity.toDomain() = com.htanh.appvk.domain.learning.Subject(
         id, name, description, iconUrl, coverImageUrl, sortOrder, isActive, iconName
