@@ -1,8 +1,48 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /HTVAData/{uid}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    function owns(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    match /HTVAData/{uid}/LEARNING_ATTEMPTS/{attemptId} {
+      allow read, write: if owns(uid);
+
+      match /ANSWERS/{questionId} {
+        allow read, write: if owns(uid);
+      }
+    }
+
+    match /HTVAData/{uid}/ESSAY_ATTEMPTS/{attemptId} {
+      allow read: if owns(uid);
+      allow create: if owns(uid)
+        && request.resource.data.uid == uid
+        && request.resource.data.status == "IN_PROGRESS"
+        && request.resource.data.grading_status == "NOT_SUBMITTED";
+      allow update: if owns(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["status", "submitted_at", "grading_status", "pending_submission_count"])
+        && request.resource.data.status == "SUBMITTED"
+        && request.resource.data.grading_status in ["PENDING_REVIEW", "NO_SUBMISSIONS"];
+      allow delete: if false;
+    }
+
+    match /HTVAData/{uid}/ESSAY_SUBMISSIONS/{submissionId} {
+      function learnerEssayFieldsAreSafe() {
+        return request.resource.data.uid == uid
+          && request.resource.data.awarded_score == null
+          && request.resource.data.graded_at == null
+          && request.resource.data.teacher_feedback == null
+          && request.resource.data.status in ["DRAFT", "PENDING_REVIEW"];
+      }
+
+      allow read: if owns(uid);
+      allow create: if owns(uid) && learnerEssayFieldsAreSafe();
+      allow update: if owns(uid)
+        && learnerEssayFieldsAreSafe()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(["answer_text", "maximum_score", "status", "submitted_at"]);
+      allow delete: if owns(uid) && resource.data.status == "DRAFT";
     }
   }
 }
