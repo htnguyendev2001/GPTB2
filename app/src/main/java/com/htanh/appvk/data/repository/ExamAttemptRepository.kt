@@ -28,13 +28,15 @@ class ExamAttemptRepository(
         questionIds: List<String>,
         questionScores: Map<String, Double>,
         questionTypes: Map<String, String>,
+        sessionEndAtEpochMillis: Long? = null,
         startedAtEpochMillis: Long = System.currentTimeMillis()
     ): StartedExamAttempt {
         val uid = auth.currentUser?.uid ?: throw IllegalStateException(AUTH_REQUIRED)
         val attemptId = UUID.randomUUID().toString()
-        val deadline = if (exam.type.name == "EXAM" && exam.durationMinutes > 0) {
+        val durationDeadline = if (exam.type.name == "EXAM" && exam.durationMinutes > 0) {
             startedAtEpochMillis + exam.durationMinutes * 60_000L
         } else null
+        val deadline = listOfNotNull(durationDeadline, sessionEndAtEpochMillis).minOrNull()
         val data = hashMapOf<String, Any?>(
             "attempt_id" to attemptId,
             "uid" to uid,
