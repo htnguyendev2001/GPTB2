@@ -8,7 +8,7 @@
 4. Enable Cloud Firestore in the Firebase project.
 5. Deploy the repository's `firestore.rules` to the target Firebase project.
 
-The Google Services Gradle plugin is applied only when `app/google-services.json` exists. Without that file, the app still builds and the learning catalogue remains usable, but user-specific history is not initialized.
+The Firebase Android BoM is pinned to `33.3.0` for this increment because the app's approved minimum SDK is API 21; newer Firebase Authentication releases raise the minimum Android API. The Google Services Gradle plugin is applied only when `app/google-services.json` exists. Without that file, the app still builds and the learning catalogue remains usable, but user-specific history is not initialized.
 
 ## 2. Firestore data layout
 
