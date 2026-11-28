@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.htanh.appvk.data.repository.LearningContentRepository
 import com.htanh.appvk.data.repository.LearningContentSyncResult
 import com.htanh.appvk.domain.learning.LearningCatalog
+import com.htanh.appvk.domain.learning.QuestionType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +20,8 @@ data class LearningUiState(
     val selectedSubjectId: String? = null,
     val selectedChapterId: String? = null,
     val selectedTopicId: String? = null,
+    val questionTypeFilter: QuestionType? = null,
+    val isStandaloneQuestionList: Boolean = false,
     val isRefreshing: Boolean = false,
     val syncMessage: String? = null,
     val errorMessage: String? = null
@@ -92,7 +95,9 @@ class LearningViewModel(
                 level = LearningLevel.CHAPTERS,
                 selectedSubjectId = subjectId,
                 selectedChapterId = null,
-                selectedTopicId = null
+                selectedTopicId = null,
+                questionTypeFilter = null,
+                isStandaloneQuestionList = false
             )
         }
     }
@@ -109,7 +114,25 @@ class LearningViewModel(
 
     fun selectTopic(topicId: String) {
         mutableState.update {
-            it.copy(level = LearningLevel.QUESTIONS, selectedTopicId = topicId)
+            it.copy(
+                level = LearningLevel.QUESTIONS,
+                selectedTopicId = topicId,
+                questionTypeFilter = null,
+                isStandaloneQuestionList = false
+            )
+        }
+    }
+
+    fun showQuestions(type: QuestionType? = null) {
+        mutableState.update {
+            it.copy(
+                level = LearningLevel.QUESTIONS,
+                selectedSubjectId = null,
+                selectedChapterId = null,
+                selectedTopicId = null,
+                questionTypeFilter = type,
+                isStandaloneQuestionList = true
+            )
         }
     }
 
@@ -125,7 +148,16 @@ class LearningViewModel(
                     level = LearningLevel.CHAPTERS,
                     selectedChapterId = null
                 )
-                LearningLevel.QUESTIONS -> current.copy(
+                LearningLevel.QUESTIONS -> if (current.isStandaloneQuestionList) {
+                    current.copy(
+                        level = LearningLevel.SUBJECTS,
+                        selectedSubjectId = null,
+                        selectedChapterId = null,
+                        selectedTopicId = null,
+                        questionTypeFilter = null,
+                        isStandaloneQuestionList = false
+                    )
+                } else current.copy(
                     level = LearningLevel.TOPICS,
                     selectedTopicId = null
                 )
