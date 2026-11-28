@@ -35,6 +35,19 @@
           android:paddingBottom="24dp">
 
         <TextView
+            android:id="@+id/tvExamTimer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_practice_feedback"
+            android:gravity="center"
+            android:padding="12dp"
+            android:textColor="#B42318"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/tvPracticeMetadata"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -151,6 +164,14 @@
                 android:minHeight="48dp"
                 android:text="@string/practice_next_question" />
         </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubmitSession"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:minHeight="52dp"
+            android:text="@string/exam_submit" />
 
         <TextView
             android:id="@+id/tvAnswerFeedback"
