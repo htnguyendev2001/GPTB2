@@ -1,10 +1,10 @@
 package com.htanh.appvk.data.repository
 
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import com.htanh.appvk.domain.learning.ExamSessionResult
 import com.htanh.appvk.domain.learning.LearningExam
 import com.htanh.appvk.domain.learning.SessionAnswer
@@ -14,15 +14,29 @@ import java.util.UUID
 data class StartedExamAttempt(
     val id: String,
     val deadlineAtEpochMillis: Long?,
-    val persistenceTask: Task<Void>
+    val persistenceTask: Task<Void>?
 )
 
 class ExamAttemptRepository(
-    private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    context: Context,
+    private val firestore: FirebaseFirestore?,
+    private val historyStore: ExamHistoryStore
 ) {
-    private fun userRoot() = firestore.collection(ROOT_COLLECTION)
-        .document(auth.currentUser?.uid ?: throw IllegalStateException(AUTH_REQUIRED))
+    private val preferences = context.applicationContext.getSharedPreferences(IDENTITY_PREFERENCES, MODE_PRIVATE)
+
+    val deviceId: String
+        get() {
+            val existing = preferences.getString(KEY_DEVICE_ID, null)
+            if (!existing.isNullOrBlank()) return existing
+            val created = UUID.randomUUID().toString()
+            preferences.edit().putString(KEY_DEVICE_ID, created).apply()
+            return created
+        }
+
+    private fun deviceRoot() = requireNotNull(firestore).collection(ROOT_COLLECTION).document(deviceId)
+    private fun attempts() = deviceRoot().collection(ATTEMPTS)
+    private fun essayAttempts() = deviceRoot().collection(ESSAY_ATTEMPTS)
+    private fun essaySubmissions() = deviceRoot().collection(ESSAY_SUBMISSIONS)
 
     fun createAttempt(
         exam: LearningExam,
@@ -32,15 +46,27 @@ class ExamAttemptRepository(
         sessionEndAtEpochMillis: Long? = null,
         startedAtEpochMillis: Long = System.currentTimeMillis()
     ): StartedExamAttempt {
-        val uid = auth.currentUser?.uid ?: throw IllegalStateException(AUTH_REQUIRED)
         val attemptId = UUID.randomUUID().toString()
         val durationDeadline = if (exam.type.name == "EXAM" && exam.durationMinutes > 0) {
             startedAtEpochMillis + exam.durationMinutes * 60_000L
         } else null
         val deadline = listOfNotNull(durationDeadline, sessionEndAtEpochMillis).minOrNull()
+        val hasEssay = questionTypes.values.any { it == "ESSAY" }
+
+        historyStore.upsert(
+            ExamHistoryItem(
+                attemptId = attemptId,
+                examId = exam.id,
+                examName = exam.name,
+                sessionType = exam.type.name,
+                startedAtMillis = startedAtEpochMillis
+            )
+        )
+
+        val database = firestore ?: return StartedExamAttempt(attemptId, deadline, null)
         val data = hashMapOf<String, Any?>(
             "attempt_id" to attemptId,
-            "uid" to uid,
+            "device_id" to deviceId,
             "exam_id" to exam.id,
             "exam_name" to exam.name,
             "exam_type" to exam.type.name,
@@ -51,15 +77,15 @@ class ExamAttemptRepository(
             "question_ids" to questionIds,
             "question_scores" to questionScores,
             "maximum_score" to exam.totalScore,
-            "grading_status" to if (questionTypes.values.any { it == "ESSAY" }) "PENDING_REVIEW" else "NOT_REQUIRED"
+            "grading_status" to if (hasEssay) "PENDING_REVIEW" else "NOT_REQUIRED"
         )
-        val root = userRoot()
-        val batch = firestore.batch()
+        val root = database.collection(ROOT_COLLECTION).document(deviceId)
+        val batch = database.batch()
         batch.set(root.collection(ATTEMPTS).document(attemptId), data)
-        if (questionTypes.values.any { it == "ESSAY" }) {
+        if (hasEssay) {
             batch.set(root.collection(ESSAY_ATTEMPTS).document(attemptId), hashMapOf(
                 "attempt_id" to attemptId,
-                "uid" to uid,
+                "device_id" to deviceId,
                 "exam_id" to exam.id,
                 "exam_name" to exam.name,
                 "status" to "IN_PROGRESS",
@@ -68,8 +94,7 @@ class ExamAttemptRepository(
                 "grading_status" to "NOT_SUBMITTED"
             ))
         }
-        val persistenceTask = batch.commit()
-        return StartedExamAttempt(attemptId, deadline, persistenceTask)
+        return StartedExamAttempt(attemptId, deadline, batch.commit())
     }
 
     fun saveAnswer(
@@ -78,8 +103,8 @@ class ExamAttemptRepository(
         answer: SessionAnswer,
         questionType: String,
         maximumScore: Double
-    ): Task<Void> {
-        val uid = auth.currentUser?.uid ?: throw IllegalStateException(AUTH_REQUIRED)
+    ): Task<Void>? {
+        val database = firestore ?: return null
         val answerData = hashMapOf<String, Any?>(
             "question_id" to answer.questionId,
             "question_type" to questionType,
@@ -88,16 +113,17 @@ class ExamAttemptRepository(
             "maximum_score" to maximumScore,
             "updated_at" to FieldValue.serverTimestamp()
         )
-        val attempt = userRoot().collection(ATTEMPTS).document(attemptId)
-        val batch = firestore.batch()
+        val root = database.collection(ROOT_COLLECTION).document(deviceId)
+        val attempt = root.collection(ATTEMPTS).document(attemptId)
+        val batch = database.batch()
         batch.set(attempt.collection(ANSWERS).document(answer.questionId), answerData)
         if (questionType == "ESSAY") {
             batch.set(
-                userRoot().collection(ESSAY_SUBMISSIONS).document("${attemptId}_${answer.questionId}"),
+                root.collection(ESSAY_SUBMISSIONS).document("${attemptId}_${answer.questionId}"),
                 hashMapOf(
                     "submission_id" to "${attemptId}_${answer.questionId}",
                     "attempt_id" to attemptId,
-                    "uid" to uid,
+                    "device_id" to deviceId,
                     "exam_id" to examId,
                     "question_id" to answer.questionId,
                     "answer_text" to answer.essayText.orEmpty(),
@@ -107,8 +133,7 @@ class ExamAttemptRepository(
                     "updated_at" to FieldValue.serverTimestamp(),
                     "graded_at" to null,
                     "teacher_feedback" to null
-                ),
-                SetOptions.merge()
+                )
             )
         }
         return batch.commit()
@@ -122,10 +147,32 @@ class ExamAttemptRepository(
         questionScores: Map<String, Double>,
         result: ExamSessionResult,
         autoSubmitted: Boolean
-    ): Task<Void> {
-        val uid = auth.currentUser?.uid ?: throw IllegalStateException(AUTH_REQUIRED)
-        val batch = firestore.batch()
-        val attempt = userRoot().collection(ATTEMPTS).document(attemptId)
+    ): Task<Void>? {
+        val submittedAt = System.currentTimeMillis()
+        historyStore.upsert(
+            ExamHistoryItem(
+                attemptId = attemptId,
+                examId = examId,
+                examName = historyStore.all().firstOrNull { it.attemptId == attemptId }?.examName.orEmpty(),
+                sessionType = historyStore.all().firstOrNull { it.attemptId == attemptId }?.sessionType ?: "EXAM",
+                startedAtMillis = historyStore.all().firstOrNull { it.attemptId == attemptId }?.startedAtMillis ?: submittedAt,
+                submittedAtMillis = submittedAt,
+                status = "SUBMITTED",
+                syncStatus = if (firestore == null) "LOCAL_ONLY" else "PENDING",
+                maximumScore = result.maximumScore,
+                earnedScore = result.earnedAutomaticScore,
+                correctCount = result.correctCount,
+                incorrectCount = result.incorrectCount,
+                unansweredCount = result.unansweredCount,
+                pendingEssayCount = result.pendingEssayCount,
+                autoSubmitted = autoSubmitted
+            )
+        )
+
+        val database = firestore ?: return null
+        val root = database.collection(ROOT_COLLECTION).document(deviceId)
+        val batch = database.batch()
+        val attempt = root.collection(ATTEMPTS).document(attemptId)
         answers.forEach { answer ->
             val type = questionTypes[answer.questionId] ?: "MCQ"
             val maxScore = questionScores[answer.questionId] ?: 0.0
@@ -140,43 +187,25 @@ class ExamAttemptRepository(
                     "updated_at" to FieldValue.serverTimestamp()
                 )
             )
-            if (type == "ESSAY" && !answer.essayText.isNullOrBlank()) {
+            if (type == "ESSAY") {
+                val hasAnswer = !answer.essayText.isNullOrBlank()
                 batch.set(
-                    userRoot().collection(ESSAY_SUBMISSIONS).document("${attemptId}_${answer.questionId}"),
+                    root.collection(ESSAY_SUBMISSIONS).document("${attemptId}_${answer.questionId}"),
                     hashMapOf(
                         "submission_id" to "${attemptId}_${answer.questionId}",
                         "attempt_id" to attemptId,
-                        "uid" to uid,
+                        "device_id" to deviceId,
                         "exam_id" to examId,
                         "question_id" to answer.questionId,
-                        "answer_text" to answer.essayText,
+                        "answer_text" to answer.essayText.orEmpty(),
                         "maximum_score" to maxScore,
                         "awarded_score" to null,
-                        "status" to "PENDING_REVIEW",
-                        "submitted_at" to FieldValue.serverTimestamp(),
+                        "status" to if (hasAnswer) "PENDING_REVIEW" else "NOT_SUBMITTED",
+                        "submitted_at" to if (hasAnswer) FieldValue.serverTimestamp() else null,
                         "graded_at" to null,
                         "teacher_feedback" to null,
                         "updated_at" to FieldValue.serverTimestamp()
-                    ),
-                    SetOptions.merge()
-                )
-            } else if (type == "ESSAY") {
-                batch.set(
-                    userRoot().collection(ESSAY_SUBMISSIONS).document("${attemptId}_${answer.questionId}"),
-                    hashMapOf(
-                        "submission_id" to "${attemptId}_${answer.questionId}",
-                        "attempt_id" to attemptId,
-                        "uid" to uid,
-                        "exam_id" to examId,
-                        "question_id" to answer.questionId,
-                        "answer_text" to "",
-                        "maximum_score" to maxScore,
-                        "awarded_score" to null,
-                        "status" to "NOT_SUBMITTED",
-                        "graded_at" to null,
-                        "teacher_feedback" to null
-                    ),
-                    SetOptions.merge()
+                    )
                 )
             }
         }
@@ -192,13 +221,17 @@ class ExamAttemptRepository(
                 "incorrect_count" to result.incorrectCount,
                 "unanswered_count" to result.unansweredCount,
                 "pending_essay_count" to result.pendingEssayCount,
-                "grading_status" to when { result.pendingEssayCount > 0 -> "PENDING_REVIEW"; questionTypes.values.any { it == "ESSAY" } -> "NO_SUBMISSIONS"; else -> "GRADED" },
+                "grading_status" to when {
+                    result.pendingEssayCount > 0 -> "PENDING_REVIEW"
+                    questionTypes.values.any { it == "ESSAY" } -> "NO_SUBMISSIONS"
+                    else -> "GRADED"
+                },
                 "updated_at" to FieldValue.serverTimestamp()
             )
         )
         if (questionTypes.values.any { it == "ESSAY" }) {
             batch.update(
-                userRoot().collection(ESSAY_ATTEMPTS).document(attemptId),
+                root.collection(ESSAY_ATTEMPTS).document(attemptId),
                 mapOf(
                     "status" to "SUBMITTED",
                     "submitted_at" to FieldValue.serverTimestamp(),
@@ -207,7 +240,15 @@ class ExamAttemptRepository(
                 )
             )
         }
-        return batch.commit()
+        val task = batch.commit()
+        task.addOnSuccessListener {
+            val saved = historyStore.all().firstOrNull { it.attemptId == attemptId } ?: return@addOnSuccessListener
+            historyStore.upsert(saved.copy(syncStatus = "SYNCED"))
+        }
+        task.addOnFailureListener {
+            // Keep the local submission history and pending status for a later retry.
+        }
+        return task
     }
 
     companion object {
@@ -216,6 +257,7 @@ class ExamAttemptRepository(
         const val ESSAY_ATTEMPTS = "ESSAY_ATTEMPTS"
         const val ESSAY_SUBMISSIONS = "ESSAY_SUBMISSIONS"
         const val ANSWERS = "ANSWERS"
-        const val AUTH_REQUIRED = "Vui lòng đăng nhập để lưu lịch sử làm bài."
+        private const val IDENTITY_PREFERENCES = "htavk_device_identity"
+        private const val KEY_DEVICE_ID = "device_id"
     }
 }
