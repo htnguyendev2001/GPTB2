@@ -25,7 +25,7 @@ The learning catalogue implementation covers:
 6. Exam and practice definitions
 7. Ordered exam-question mappings
 
-The workbook contract also reserves tabs for app configuration, exams, exam-question mapping, badges, levels and missions. Those future domains are documented here but are not part of this first vertical slice.
+The workbook contract also reserves tabs for app configuration, badges, levels and missions. Exams and exam-question mappings are now consumed by the exam/practice increment described in section 13.
 
 ### Explicit exclusions
 
@@ -167,7 +167,7 @@ Essay attempts, essay submissions, grading comments and grading outcomes are del
 
 ### Transport
 
-Use Google Sheets API v4 read-only `spreadsheets.values:batchGet` over HTTPS with `valueRenderOption=UNFORMATTED_VALUE` so numeric cells are parsed independently of spreadsheet display locale. Fetch the five required ranges in one request:
+Use Google Sheets API v4 read-only `spreadsheets.values:batchGet` over HTTPS with `valueRenderOption=UNFORMATTED_VALUE` so numeric cells are parsed independently of spreadsheet display locale. Fetch all seven required ranges in one request:
 
 - `SUBJECTS!A:Z`
 - `CHAPTERS!A:Z`
@@ -267,7 +267,7 @@ Learning UI (subjects -> chapters -> topics -> questions)
 
 ### Consistency
 
-A content refresh is all-or-nothing. Never clear Room before remote fetch and validation complete. Use one database transaction to delete and insert the five tables. Persist `last_successful_sync_at` only in the same successful transaction. Keep only one current snapshot; do not create content-version tables.
+A content refresh is all-or-nothing. Never clear Room before remote fetch and validation complete. Use one database transaction to delete and insert all seven catalogue tables. Persist `last_successful_sync_at` only in the same successful transaction. Keep only one current snapshot; do not create content-version tables.
 
 ## 8. Room schema
 
@@ -336,7 +336,7 @@ User-facing messages should be understandable and must not expose API keys or ra
 ### Specification / workbook
 
 - [ ] One spreadsheet is shared as Anyone with the link — Viewer and contains only public learning content.
-- [ ] One public spreadsheet contains all five required tabs with the exact v1 headers.
+- [ ] One public spreadsheet contains all seven required tabs with the exact v1 headers.
 - [ ] Reserved tabs are documented but are not required for the first sync.
 - [ ] Essay attempts and grading are not stored in public Sheets.
 - [ ] The API key and spreadsheet ID are configured outside version control.
@@ -348,7 +348,7 @@ User-facing messages should be understandable and must not expose API keys or ra
 - [ ] Required values, enums, numbers, booleans and relationships are validated.
 - [ ] Duplicate IDs and invalid MCQ option structures reject the incoming snapshot.
 - [ ] Invalid or failed sync leaves the previous Room snapshot unchanged.
-- [ ] Successful sync atomically replaces all five content tables.
+- [ ] Successful sync atomically replaces all seven content tables.
 - [ ] Last successful sync time is updated only after successful persistence.
 - [ ] No question-version history is stored.
 
@@ -448,7 +448,7 @@ A question may be reused by multiple exams/practice sets. The pair (exam_id, que
 - Both tables are replaced in the same Room transaction as the five existing catalogue tables.
 - The Learning screen exposes a combined exam/practice list, labels each item by `exam_type`, and displays question count, total score and duration.
 - Selecting an item opens the existing question-session screen with question IDs ordered by `EXAM_QUESTIONS.sort_order`; per-session score comes from `EXAM_QUESTIONS.score`.
-- `start_at` and `end_at` are retained but not yet used to gate availability. A timed countdown, final exam submission/result screen and learner attempt-history persistence are separate follow-up work; this increment must not be represented as implementing those behaviors.
+- In increment 1.2, `start_at` and `end_at` were retained but not yet used to gate availability. Increment 1.3 below adds availability gating, countdown, submission/result and UID-scoped learner attempt persistence.
 - No learner identity, answer, attempt, score result or essay submission is read from or written to Google Sheets.
 
 
