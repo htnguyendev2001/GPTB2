@@ -1,47 +1,40 @@
-# Firebase setup — HTVA Vk learning attempts
+# Firebase setup — HTVA Vk student submissions
 
-## 1. Firebase Android configuration
+## 1. Android Firebase configuration
 
-1. Register the Android app with package name `com.htanh.appvk`.
-2. Download `google-services.json` and place it at `app/google-services.json`. This file is ignored by Git and must not be committed.
-3. Enable the Firebase Authentication provider used by the product and ensure the app has a signed-in Firebase user before starting a learning session. The current branch deliberately does not create anonymous accounts or invent a sign-in method.
-4. Enable Cloud Firestore in the Firebase project.
-5. Deploy the repository's `firestore.rules` to the target Firebase project.
+The repository includes `app/google-services.json` for the registered Android package `com.htanh.appvk` in Firebase project `nike-fbbd4`. The Google Services Gradle plugin is applied by `app/build.gradle`; do not replace this file with the HTVA Ck configuration.
 
-The Firebase Android BoM is pinned to `33.3.0` and Firebase Auth is explicitly pinned to `22.3.1` because the app's approved minimum SDK is API 21; Firebase Auth `23.0.0` raises the minimum Android API to 23. Firestore remains BoM-managed. The Google Services Gradle plugin is applied only when `app/google-services.json` exists. Without that file, the app still builds and the learning catalogue remains usable, but user-specific history is not initialized.
+The app uses Firebase Firestore for student submissions. Firebase Authentication is intentionally not used. The Google Services file configures the Firebase Android app; it does not create a user account or enable Firebase Authentication.
 
-## 2. Firestore data layout
+## 2. Identity and local history
 
-All private learning records are nested under the authenticated UID:
+- The app creates a random UUID once per installation and stores it in private app preferences as `device_id`.
+- No login, registration, or Firebase Authentication is required.
+- The identifier is an installation identifier, not proof of identity. It can be reset by clearing app data/reinstalling and must not be treated as a security credential.
+- Submission history is persisted locally on the device immediately, including score, submitted time, essay-review state, and cloud-sync status.
+- Firestore stores teacher-facing records under:
 
 ```text
-HTVAData/{uid}/
+HTVAData/{deviceId}/
   LEARNING_ATTEMPTS/{attemptId}
     ANSWERS/{questionId}
   ESSAY_ATTEMPTS/{attemptId}
   ESSAY_SUBMISSIONS/{attemptId_questionId}
 ```
 
-- `LEARNING_ATTEMPTS` stores one record for every EXAM or PRACTICE session, including status, start/deadline/submission timestamps, question IDs, per-question maximum scores, automatic score and summary counts.
-- `ANSWERS` stores the selected option or essay draft for each question in that session.
-- `ESSAY_ATTEMPTS` stores the essay-review parent record only when the session contains at least one ESSAY question.
-- `ESSAY_SUBMISSIONS` stores one essay response per attempt/question. Drafts use `DRAFT`; submitted responses use `PENDING_REVIEW`; unanswered essay questions are retained as `NOT_SUBMITTED`. Teachers can inspect and update grading fields through Firebase Console.
+## 3. Firestore rules and teacher access
 
-The app never writes learner data to the public Google Spreadsheet.
+Deploy the repository's `firestore.rules` to the `nike-fbbd4` Firebase project.
 
-## 3. Ownership rules
+The rules intentionally deny all client reads. The student app writes submission records, while teachers review them through Firebase Console using an authorized project account. Firebase Console access is privileged and is not governed by these client security rules.
 
-The provided `firestore.rules` allows access only when `request.auth.uid` matches the UID segment in `HTVAData/{uid}`. Do not weaken this to client-supplied UID checks or public access. Firebase Console administrators can review essay submissions without an additional teacher-facing app.
+**Security limitation:** because Firebase Authentication is intentionally disabled, Firestore Rules cannot prove that a caller owns a particular device ID. A UUID in the document path is not authentication and can be spoofed. The current rules therefore restrict data shape and deny client reads, but unauthenticated writes can still be forged or spammed by a caller that reaches the Firestore API. Before production rollout, configure Firebase App Check for the Android app (Play Integrity), verify valid tokens in App Check metrics, then enforce App Check for Cloud Firestore in Firebase Console. App Check reduces unauthorized client access but does not turn Device ID into a user identity.
 
-## 4. Authentication integration dependency
+## 4. Submission lifecycle
 
-The repository uses `FirebaseAuth.currentUser.uid` as the ownership boundary. The current HTVA Vk source branch does not yet contain a login/registration UI. Until the app's approved authentication flow signs a user in, creating a Firestore attempt returns an authentication-required message and the session can only be completed locally. Do not silently create anonymous accounts; that would change account identity and recovery behavior.
-
-## 5. Attempt lifecycle
-
-- `IN_PROGRESS`: attempt created when the session starts.
-- `SUBMITTED`: learner submitted manually or the timer expired.
-- Essay submissions move from `DRAFT` to `PENDING_REVIEW` at final submission.
-- `grading_status` is `PENDING_REVIEW` when essay responses await a teacher, `GRADED` when no essay grading is required, or `NO_SUBMISSIONS` when the attempt contains essay questions but none were answered.
-
-MCQ results are calculated on Android from the public answer key. This product does not claim anti-cheat protection. Timed exams use a client-calculated deadline; a trusted server deadline would require a backend/Cloud Function, which is outside the approved architecture.
+- A local history record is created when a learning attempt starts.
+- Final submission updates the local history immediately; cloud status starts as pending.
+- On successful Firestore acknowledgement, the local status changes to synced.
+- If the network or Firestore write fails, the local history is retained and marked pending. Firestore's offline persistence may complete queued writes when connectivity returns, but the UI must not claim the cloud copy exists until the write is acknowledged.
+- Essay responses use `PENDING_REVIEW`; unanswered essay questions use `NOT_SUBMITTED`.
+- MCQ scores are calculated on the Android client. This is suitable for learning feedback, not anti-cheat or high-stakes examination.
