@@ -218,10 +218,12 @@ object LearningCatalogParser {
         val score = table.value(row, "score").toDoubleOrNull()
             ?: invalid(EXAM_QUESTIONS, "row ${index + 2}", "score must be a decimal number")
         if (!score.isFinite() || score < 0.0) invalid(EXAM_QUESTIONS, "row ${index + 2}", "score must be non-negative")
+        val sortOrder = row.intValue(table, "sort_order", EXAM_QUESTIONS, index, 0)
+        if (sortOrder < 0) invalid(EXAM_QUESTIONS, "row ${index + 2}", "sort_order must be non-negative")
         ExamQuestion(
             row.required(table, "exam_id", EXAM_QUESTIONS, index),
             row.required(table, "question_id", EXAM_QUESTIONS, index),
-            row.intValue(table, "sort_order", EXAM_QUESTIONS, index, 0), score
+            sortOrder, score
         )
     }
 
