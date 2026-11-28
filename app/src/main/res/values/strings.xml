@@ -18,6 +18,8 @@
     <string name="learning_chapters_title">Chương học</string>
     <string name="learning_topics_title">Chủ đề</string>
     <string name="learning_questions_title">Câu hỏi</string>
+    <string name="learning_exams_title">Bài kiểm tra và luyện tập</string>
+    <string name="learning_exams_open">Bài kiểm tra &amp; bài luyện tập</string>
     <string name="learning_back">Quay lại</string>
     <string name="learning_refresh">Làm mới</string>
     <string name="learning_sync_not_started">Chưa đồng bộ học liệu</string>
