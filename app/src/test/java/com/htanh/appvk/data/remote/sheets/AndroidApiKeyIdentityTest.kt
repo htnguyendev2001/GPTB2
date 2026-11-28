@@ -1,6 +1,7 @@
 package com.htanh.appvk.data.remote.sheets
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AndroidApiKeyIdentityTest {
@@ -12,10 +13,10 @@ class AndroidApiKeyIdentityTest {
     }
 
     @Test
-    fun sha1Hex_preservesLeadingZeroBytes() {
+    fun sha1Hex_returnsFortyHexCharacters() {
         val result = AndroidApiKeyIdentity.sha1Hex(byteArrayOf(0))
 
         assertEquals(40, result.length)
-        assertEquals("0", result.first().toString())
+        assertTrue(result.matches(Regex("[0-9A-F]{40}")))
     }
 }
