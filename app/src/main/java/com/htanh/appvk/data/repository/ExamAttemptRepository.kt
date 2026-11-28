@@ -154,6 +154,8 @@ class ExamAttemptRepository(
                         "teacher_feedback" to null
                     )
                 )
+            } else if (type == "ESSAY") {
+                batch.delete(userRoot().collection(ESSAY_SUBMISSIONS).document("${attemptId}_${answer.questionId}"))
             }
         }
         batch.update(
@@ -178,7 +180,7 @@ class ExamAttemptRepository(
                 mapOf(
                     "status" to "SUBMITTED",
                     "submitted_at" to FieldValue.serverTimestamp(),
-                    "grading_status" to "PENDING_REVIEW",
+                    "grading_status" to if (result.pendingEssayCount > 0) "PENDING_REVIEW" else "NO_SUBMISSIONS",
                     "pending_submission_count" to result.pendingEssayCount
                 )
             )
