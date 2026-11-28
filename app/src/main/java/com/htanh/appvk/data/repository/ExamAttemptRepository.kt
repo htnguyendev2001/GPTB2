@@ -4,6 +4,7 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.htanh.appvk.domain.learning.ExamSessionResult
 import com.htanh.appvk.domain.learning.LearningExam
 import com.htanh.appvk.domain.learning.SessionAnswer
@@ -64,7 +65,7 @@ class ExamAttemptRepository(
                 "status" to "IN_PROGRESS",
                 "started_at" to FieldValue.serverTimestamp(),
                 "submitted_at" to null,
-                "grading_status" to "PENDING"
+                "grading_status" to "NOT_SUBMITTED"
             ))
         }
         val persistenceTask = batch.commit()
@@ -154,7 +155,8 @@ class ExamAttemptRepository(
                         "submitted_at" to FieldValue.serverTimestamp(),
                         "graded_at" to null,
                         "teacher_feedback" to null
-                    )
+                    ),
+                    SetOptions.merge()
                 )
             } else if (type == "ESSAY") {
                 batch.delete(userRoot().collection(ESSAY_SUBMISSIONS).document("${attemptId}_${answer.questionId}"))
