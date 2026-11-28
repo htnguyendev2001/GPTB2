@@ -54,6 +54,7 @@ class ExamAttemptRepository(
 
     fun saveAnswer(
         attemptId: String,
+        examId: String,
         answer: SessionAnswer,
         questionType: String,
         maximumScore: Double
@@ -77,7 +78,7 @@ class ExamAttemptRepository(
                     "submission_id" to "${attemptId}_${answer.questionId}",
                     "attempt_id" to attemptId,
                     "uid" to uid,
-                    "exam_id" to attemptId,
+                    "exam_id" to examId,
                     "question_id" to answer.questionId,
                     "answer_text" to answer.essayText.orEmpty(),
                     "maximum_score" to maximumScore,
