@@ -2,20 +2,23 @@ package com.htanh.appvk
 
 import android.app.Application
 import androidx.room.Room
+import com.google.firebase.FirebaseApp
+import com.google.firebase.firestore.FirebaseFirestore
 import com.htanh.appvk.data.local.LearningDatabase
 import com.htanh.appvk.data.remote.sheets.GoogleSheetsRemoteDataSource
+import com.htanh.appvk.data.repository.ExamAttemptRepository
+import com.htanh.appvk.data.repository.ExamHistoryStore
 import com.htanh.appvk.data.repository.LearningContentRepository
 import com.htanh.appvk.data.repository.LearningContentRepositoryImpl
-import com.htanh.appvk.data.repository.ExamAttemptRepository
-import com.google.firebase.FirebaseApp
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 
 class HtavkApplication : Application() {
     lateinit var learningContentRepository: LearningContentRepository
         private set
 
-    var examAttemptRepository: ExamAttemptRepository? = null
+    lateinit var examHistoryStore: ExamHistoryStore
+        private set
+
+    lateinit var examAttemptRepository: ExamAttemptRepository
         private set
 
     override fun onCreate() {
@@ -33,11 +36,16 @@ class HtavkApplication : Application() {
         )
         learningContentRepository = LearningContentRepositoryImpl(database, remoteDataSource)
 
-        if (FirebaseApp.initializeApp(applicationContext) != null) {
-            examAttemptRepository = ExamAttemptRepository(
-                FirebaseAuth.getInstance(),
-                FirebaseFirestore.getInstance()
-            )
+        examHistoryStore = ExamHistoryStore(applicationContext)
+        val firestore = if (FirebaseApp.initializeApp(applicationContext) != null) {
+            FirebaseFirestore.getInstance()
+        } else {
+            null
         }
+        examAttemptRepository = ExamAttemptRepository(
+            context = applicationContext,
+            firestore = firestore,
+            historyStore = examHistoryStore
+        )
     }
 }
