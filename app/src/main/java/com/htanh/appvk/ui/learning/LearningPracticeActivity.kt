@@ -309,7 +309,7 @@ class LearningPracticeActivity : AppCompatActivity() {
         optionsGroup.visibility = if (isEssay) View.GONE else View.VISIBLE
         essayAnswer.visibility = if (isEssay) View.VISIBLE else View.GONE
         essayNotice.visibility = if (isEssay) View.VISIBLE else View.GONE
-        essayNotice.text = getString(R.string.exam_essay_notice)
+        essayNotice.text = if (isLearningSession) getString(R.string.exam_essay_notice) else getString(R.string.practice_essay_draft_notice)
         essayAnswer.isEnabled = !sessionSubmitted
         checkButton.visibility = if (isEssay || isExam) View.GONE else View.VISIBLE
         essayAnswer.setText(essayDrafts[question.id].orEmpty())
