@@ -12,7 +12,7 @@
     <string name="home_essay_title">Bài tự luận</string>
     <string name="home_essay_description">Gửi bài làm và theo dõi kết quả chấm bài.</string>
     <string name="home_progress_title">Tiến độ học tập</string>
-    <string name="home_progress_description">Theo dõi thời gian học, chuỗi ngày học và thành tích cá nhân.</string>
+    <string name="home_progress_description">Xem lại lịch sử bài kiểm tra, điểm số và trạng thái chấm bài.</string>
     <string name="home_footer">HTVA Vk</string>
     <string name="learning_subjects_title">Môn học</string>
     <string name="learning_chapters_title">Chương học</string>
