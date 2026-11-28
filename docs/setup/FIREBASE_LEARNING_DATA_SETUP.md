@@ -25,7 +25,7 @@ HTVAData/{uid}/
 - `LEARNING_ATTEMPTS` stores one record for every EXAM or PRACTICE session, including status, start/deadline/submission timestamps, question IDs, per-question maximum scores, automatic score and summary counts.
 - `ANSWERS` stores the selected option or essay draft for each question in that session.
 - `ESSAY_ATTEMPTS` stores the essay-review parent record only when the session contains at least one ESSAY question.
-- `ESSAY_SUBMISSIONS` stores one essay response per attempt/question. Drafts use `DRAFT`; submitted responses use `PENDING_REVIEW`. Teachers can inspect and update grading fields through Firebase Console.
+- `ESSAY_SUBMISSIONS` stores one essay response per attempt/question. Drafts use `DRAFT`; submitted responses use `PENDING_REVIEW`; unanswered essay questions are retained as `NOT_SUBMITTED`. Teachers can inspect and update grading fields through Firebase Console.
 
 The app never writes learner data to the public Google Spreadsheet.
 
