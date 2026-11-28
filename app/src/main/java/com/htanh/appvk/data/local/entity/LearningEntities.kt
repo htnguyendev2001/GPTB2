@@ -112,3 +112,16 @@ data class SyncMetadataEntity(
     @PrimaryKey val key: String,
     val value: String
 )
+
+@Entity(tableName = "learning_exams", indices = [Index("subjectId")], foreignKeys = [ForeignKey(entity = SubjectEntity::class, parentColumns = ["id"], childColumns = ["subjectId"], onDelete = ForeignKey.CASCADE)])
+data class LearningExamEntity(
+    @PrimaryKey val id: String, val name: String, val description: String, val subjectId: String,
+    val durationMinutes: Int, val type: String, val totalScore: Double, val isActive: Boolean,
+    val startAt: String?, val endAt: String?
+)
+
+@Entity(tableName = "exam_questions", primaryKeys = ["examId", "questionId"], indices = [Index("questionId"), Index("examId", "sortOrder")], foreignKeys = [
+    ForeignKey(entity = LearningExamEntity::class, parentColumns = ["id"], childColumns = ["examId"], onDelete = ForeignKey.CASCADE),
+    ForeignKey(entity = LearningQuestionEntity::class, parentColumns = ["id"], childColumns = ["questionId"], onDelete = ForeignKey.CASCADE)
+])
+data class ExamQuestionEntity(val examId: String, val questionId: String, val sortOrder: Int, val score: Double)
