@@ -26,6 +26,7 @@ class ExamAttemptRepository(
         exam: LearningExam,
         questionIds: List<String>,
         questionScores: Map<String, Double>,
+        questionTypes: Map<String, String>,
         startedAtEpochMillis: Long = System.currentTimeMillis()
     ): StartedExamAttempt {
         val uid = auth.currentUser?.uid ?: throw IllegalStateException(AUTH_REQUIRED)
@@ -48,7 +49,22 @@ class ExamAttemptRepository(
             "maximum_score" to exam.totalScore,
             "grading_status" to "NOT_REQUIRED"
         )
-        userRoot().collection(ATTEMPTS).document(attemptId).set(data)
+        val root = userRoot()
+        val batch = firestore.batch()
+        batch.set(root.collection(ATTEMPTS).document(attemptId), data)
+        if (questionTypes.values.any { it == "ESSAY" }) {
+            batch.set(root.collection(ESSAY_ATTEMPTS).document(attemptId), hashMapOf(
+                "attempt_id" to attemptId,
+                "uid" to uid,
+                "exam_id" to exam.id,
+                "exam_name" to exam.name,
+                "status" to "IN_PROGRESS",
+                "started_at" to FieldValue.serverTimestamp(),
+                "submitted_at" to null,
+                "grading_status" to "PENDING"
+            ))
+        }
+        batch.commit()
         return StartedExamAttempt(attemptId, deadline)
     }
 
@@ -95,6 +111,7 @@ class ExamAttemptRepository(
 
     fun submitAttempt(
         attemptId: String,
+        examId: String,
         answers: List<SessionAnswer>,
         questionTypes: Map<String, String>,
         questionScores: Map<String, Double>,
@@ -125,6 +142,7 @@ class ExamAttemptRepository(
                         "submission_id" to "${attemptId}_${answer.questionId}",
                         "attempt_id" to attemptId,
                         "uid" to uid,
+                        "exam_id" to examId,
                         "question_id" to answer.questionId,
                         "answer_text" to answer.essayText,
                         "maximum_score" to maxScore,
@@ -153,12 +171,24 @@ class ExamAttemptRepository(
                 "updated_at" to FieldValue.serverTimestamp()
             )
         )
+        if (result.pendingEssayCount > 0) {
+            batch.update(
+                userRoot().collection(ESSAY_ATTEMPTS).document(attemptId),
+                mapOf(
+                    "status" to "SUBMITTED",
+                    "submitted_at" to FieldValue.serverTimestamp(),
+                    "grading_status" to "PENDING_REVIEW",
+                    "pending_submission_count" to result.pendingEssayCount
+                )
+            )
+        }
         return batch.commit()
     }
 
     companion object {
         const val ROOT_COLLECTION = "HTVAData"
-        const val ATTEMPTS = "ESSAY_ATTEMPTS"
+        const val ATTEMPTS = "EXAM_ATTEMPTS"
+        const val ESSAY_ATTEMPTS = "ESSAY_ATTEMPTS"
         const val ESSAY_SUBMISSIONS = "ESSAY_SUBMISSIONS"
         const val ANSWERS = "ANSWERS"
         const val AUTH_REQUIRED = "Vui lòng đăng nhập để lưu lịch sử làm bài."
