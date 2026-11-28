@@ -74,6 +74,8 @@
     <string name="practice_essay_hint">Em cứ viết suy nghĩ của mình ở đây nhé…</string>
     <string name="practice_essay_draft_notice">Bài viết hiện mới được giữ tạm trên màn hình này, chưa thể lưu hoặc nộp. Anh sẽ bổ sung chức năng đó khi hồ sơ người dùng được tích hợp nhé.</string>
     <string name="progress_loading">Đang tải tổng quan học liệu…</string>
+    <string name="progress_history_heading">LỊCH SỬ LÀM BÀI</string>
+    <string name="progress_history_empty">Chưa có bài làm nào được ghi nhận trên thiết bị này.</string>
     <string name="progress_catalog_summary">Kho học tập hiện có:\n• %1$d môn học\n• %2$d chương\n• %3$d chủ đề\n• %4$d câu hỏi</string>
     <string name="progress_not_tracking">Lịch sử được lưu trên thiết bị này. Bài nộp đã đồng bộ sẽ có bản ghi trên Firebase để giáo viên xem; bài đang chờ đồng bộ vẫn được giữ trong lịch sử cục bộ.</string>
 </resources>
