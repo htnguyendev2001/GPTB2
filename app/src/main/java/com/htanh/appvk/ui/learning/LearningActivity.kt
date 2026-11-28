@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 class LearningActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_QUESTION_FILTER = "com.htanh.appvk.extra.QUESTION_FILTER"
-        const val FILTER_ALL = "all"
+        const val FILTER_MCQ = "mcq"
         const val FILTER_ESSAY = "essay"
     }
 
@@ -76,10 +76,10 @@ class LearningActivity : AppCompatActivity() {
         itemsList.setHasFixedSize(false)
 
         val requestedFilter = intent.getStringExtra(EXTRA_QUESTION_FILTER)
-        if (requestedFilter == FILTER_ESSAY) {
-            viewModel.showQuestions(QuestionType.ESSAY)
-        } else if (requestedFilter == FILTER_ALL) {
-            viewModel.showQuestions()
+        when (requestedFilter) {
+            FILTER_MCQ -> viewModel.showQuestions(QuestionType.MCQ)
+            FILTER_ESSAY -> viewModel.showQuestions(QuestionType.ESSAY)
+            else -> Unit
         }
 
         refreshButton.setOnClickListener { viewModel.refresh() }
@@ -114,7 +114,8 @@ class LearningActivity : AppCompatActivity() {
                 ?: getString(R.string.learning_topics_title)
             LearningLevel.QUESTIONS -> when (state.questionTypeFilter) {
                 QuestionType.ESSAY -> getString(R.string.home_essay_title)
-                else -> if (state.isStandaloneQuestionList) getString(R.string.home_practice_title)
+                QuestionType.MCQ -> getString(R.string.home_practice_title)
+                null -> if (state.isStandaloneQuestionList) getString(R.string.learning_questions_title)
                     else catalog.topics.firstOrNull { it.id == state.selectedTopicId }?.name
                         ?: getString(R.string.learning_questions_title)
             }
