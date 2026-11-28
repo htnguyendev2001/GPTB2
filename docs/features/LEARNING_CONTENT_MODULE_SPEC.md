@@ -450,3 +450,50 @@ A question may be reused by multiple exams/practice sets. The pair (exam_id, que
 - Selecting an item opens the existing question-session screen with question IDs ordered by `EXAM_QUESTIONS.sort_order`; per-session score comes from `EXAM_QUESTIONS.score`.
 - `start_at` and `end_at` are retained but not yet used to gate availability. A timed countdown, final exam submission/result screen and learner attempt-history persistence are separate follow-up work; this increment must not be represented as implementing those behaviors.
 - No learner identity, answer, attempt, score result or essay submission is read from or written to Google Sheets.
+
+
+## 14. Timed sessions, submission and Firebase learner records (implementation increment 1.3)
+
+### Session behavior
+
+- Selecting an EXAM or PRACTICE definition creates a session attempt when Firebase is configured and the user is authenticated.
+- EXAM sessions with a positive `duration_minutes` calculate an absolute deadline at session start. The UI displays a countdown derived from that deadline, so pausing/resuming the Activity does not reset the clock. When the deadline is reached, the app submits automatically.
+- The deadline is currently based on the device clock. This is not a tamper-resistant timer; a trusted server deadline would require a backend/Cloud Function and is outside the approved architecture.
+- `start_at` and `end_at` are ISO-8601 timestamps with an explicit timezone/UTC offset. The opening interval is inclusive at start and exclusive at end. Invalid timestamps or a start timestamp not earlier than end timestamp make the definition unavailable.
+- Availability is rechecked when the learner taps the item, not only when the list is rendered. A not-yet-open row remains tappable to show its opening-state message and can start without requiring a catalogue refresh once the time window begins.
+- EXAM mode never reveals correctness, answer keys or explanations before submission. PRACTICE mode retains immediate feedback.
+- Manual submission and timeout submission both calculate MCQ points from `EXAM_QUESTIONS.score` (falling back to the question's `max_score` only when no session override exists). ESSAY responses are not auto-scored and remain pending teacher review.
+- The result screen reports automatic score, correct/incorrect/unanswered counts and the number of essay responses awaiting review. It does not represent pending essay points as a final score.
+
+### Firestore ownership and document layout
+
+Private records live under the authenticated Firebase UID in the top-level `HTVAData` collection:
+
+```text
+HTVAData/{uid}/
+  LEARNING_ATTEMPTS/{attemptId}
+    ANSWERS/{questionId}
+  ESSAY_ATTEMPTS/{attemptId}
+  ESSAY_SUBMISSIONS/{attemptId_questionId}
+```
+
+- `LEARNING_ATTEMPTS`: one parent record for every EXAM/PRACTICE session; includes status, timing, question IDs, per-question scores and automatic result summary.
+- `ANSWERS`: one document per question with selected option or essay draft.
+- `ESSAY_ATTEMPTS`: one parent record only when the session contains ESSAY questions.
+- `ESSAY_SUBMISSIONS`: one document per answered ESSAY question. Draft status is `DRAFT`; final submission status is `PENDING_REVIEW`. Teacher grading fields include `awarded_score`, `teacher_feedback`, `graded_at` and `status`.
+- Firestore rules must enforce `request.auth.uid == uid` for every document under `HTVAData/{uid}`. The repository includes `firestore.rules` with this ownership check.
+- The app never writes learner answers, attempts or results to the public Google Spreadsheet.
+
+### Firebase setup and known dependency
+
+Firebase Auth and Firestore Android SDKs are included. The Google Services plugin is applied only when the untracked `app/google-services.json` exists. See `docs/setup/FIREBASE_LEARNING_DATA_SETUP.md` and deploy `firestore.rules` to the Firebase project.
+
+The current source branch does not yet provide a login/registration UI or an approved sign-in provider flow. The Firestore repository requires `FirebaseAuth.currentUser`; it does not silently create anonymous accounts. Until the authentication flow signs a user in, the UI can complete a session locally but cannot persist it to Firestore. This is an explicit integration dependency, not a completed end-to-end authentication feature.
+
+### Scope not included
+
+- Resuming an in-progress attempt after process death or reinstall.
+- A trusted server-side timer or anti-cheat enforcement.
+- Teacher-facing grading UI; teachers review/update essay documents through Firebase Console.
+- Refreshing the learner's result automatically after a teacher changes essay grading fields.
+- Reward points, XP, badges or learning streak progression.
