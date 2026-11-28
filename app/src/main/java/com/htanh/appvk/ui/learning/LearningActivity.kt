@@ -18,6 +18,7 @@ import com.google.android.material.button.MaterialButton
 import com.htanh.appvk.HtavkApplication
 import com.htanh.appvk.R
 import com.htanh.appvk.domain.learning.LearningQuestion
+import com.htanh.appvk.domain.learning.QuestionType
 import com.htanh.appvk.ui.applySystemBarInsets
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -25,6 +26,12 @@ import java.util.Locale
 import kotlinx.coroutines.launch
 
 class LearningActivity : AppCompatActivity() {
+    companion object {
+        const val EXTRA_QUESTION_FILTER = "com.htanh.appvk.extra.QUESTION_FILTER"
+        const val FILTER_ALL = "all"
+        const val FILTER_ESSAY = "essay"
+    }
+
     private lateinit var viewModel: LearningViewModel
     private lateinit var titleView: TextView
     private lateinit var syncStatusView: TextView
@@ -68,16 +75,25 @@ class LearningActivity : AppCompatActivity() {
         itemsList.adapter = listAdapter
         itemsList.setHasFixedSize(false)
 
+        val requestedFilter = intent.getStringExtra(EXTRA_QUESTION_FILTER)
+        if (requestedFilter == FILTER_ESSAY) {
+            viewModel.showQuestions(QuestionType.ESSAY)
+        } else if (requestedFilter == FILTER_ALL) {
+            viewModel.showQuestions()
+        }
+
         refreshButton.setOnClickListener { viewModel.refresh() }
-        backButton.setOnClickListener { viewModel.navigateBack() }
+        backButton.setOnClickListener {
+            val state = viewModel.state.value
+            if (state.level == LearningLevel.SUBJECTS || state.isStandaloneQuestionList) finish()
+            else viewModel.navigateBack()
+        }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (viewModel.state.value.level == LearningLevel.SUBJECTS) {
-                    finish()
-                } else {
-                    viewModel.navigateBack()
-                }
+                val state = viewModel.state.value
+                if (state.level == LearningLevel.SUBJECTS || state.isStandaloneQuestionList) finish()
+                else viewModel.navigateBack()
             }
         })
 
@@ -96,10 +112,14 @@ class LearningActivity : AppCompatActivity() {
                 ?: getString(R.string.learning_chapters_title)
             LearningLevel.TOPICS -> catalog.chapters.firstOrNull { it.id == state.selectedChapterId }?.name
                 ?: getString(R.string.learning_topics_title)
-            LearningLevel.QUESTIONS -> catalog.topics.firstOrNull { it.id == state.selectedTopicId }?.name
-                ?: getString(R.string.learning_questions_title)
+            LearningLevel.QUESTIONS -> when (state.questionTypeFilter) {
+                QuestionType.ESSAY -> getString(R.string.home_essay_title)
+                else -> if (state.isStandaloneQuestionList) getString(R.string.home_practice_title)
+                    else catalog.topics.firstOrNull { it.id == state.selectedTopicId }?.name
+                        ?: getString(R.string.learning_questions_title)
+            }
         }
-        backButton.visibility = if (state.level == LearningLevel.SUBJECTS) View.GONE else View.VISIBLE
+        backButton.visibility = View.VISIBLE
         progressBar.visibility = if (state.isRefreshing) View.VISIBLE else View.GONE
         refreshButton.isEnabled = !state.isRefreshing
 
@@ -151,7 +171,11 @@ class LearningActivity : AppCompatActivity() {
                     )
                 }
             LearningLevel.QUESTIONS -> catalog.questions
-                .filter { it.isActive && it.topicId == state.selectedTopicId }
+                .filter { question ->
+                    question.isActive &&
+                        (state.isStandaloneQuestionList || question.topicId == state.selectedTopicId) &&
+                        (state.questionTypeFilter == null || question.type == state.questionTypeFilter)
+                }
                 .map { question -> question.toListItem(catalog.options.count { it.questionId == question.id }) }
         }
 
