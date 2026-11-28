@@ -77,6 +77,7 @@ class LearningPracticeActivity : AppCompatActivity() {
         questionIds = suppliedIds.distinct().ifEmpty { listOfNotNull(startQuestionId) }
         currentIndex = questionIds.indexOf(startQuestionId).takeIf { it >= 0 } ?: 0
 
+        intent.getStringExtra(EXTRA_SESSION_TITLE)?.takeIf(String::isNotBlank)?.let { toolbar.title = it }
         toolbar.setNavigationOnClickListener { finish() }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() = finish()
@@ -298,5 +299,8 @@ class LearningPracticeActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_QUESTION_ID = "com.htanh.appvk.extra.QUESTION_ID"
         const val EXTRA_QUESTION_IDS = "com.htanh.appvk.extra.QUESTION_IDS"
+        const val EXTRA_SESSION_TITLE = "com.htanh.appvk.extra.SESSION_TITLE"
+        const val EXTRA_SESSION_TYPE = "com.htanh.appvk.extra.SESSION_TYPE"
+        const val EXTRA_DURATION_MINUTES = "com.htanh.appvk.extra.DURATION_MINUTES"
     }
 }
