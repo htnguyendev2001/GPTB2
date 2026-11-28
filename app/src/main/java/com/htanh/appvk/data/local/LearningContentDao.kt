@@ -6,6 +6,8 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.htanh.appvk.data.local.entity.ChapterEntity
 import com.htanh.appvk.data.local.entity.LearningQuestionEntity
+import com.htanh.appvk.data.local.entity.LearningExamEntity
+import com.htanh.appvk.data.local.entity.ExamQuestionEntity
 import com.htanh.appvk.data.local.entity.QuestionOptionEntity
 import com.htanh.appvk.data.local.entity.SubjectEntity
 import com.htanh.appvk.data.local.entity.SyncMetadataEntity
@@ -29,6 +31,12 @@ interface LearningContentDao {
     @Query("SELECT * FROM question_options ORDER BY sortOrder ASC, id ASC")
     fun observeOptions(): Flow<List<QuestionOptionEntity>>
 
+    @Query("SELECT * FROM learning_exams WHERE isActive = 1 ORDER BY name COLLATE NOCASE ASC, id ASC")
+    fun observeExams(): Flow<List<LearningExamEntity>>
+
+    @Query("SELECT * FROM exam_questions ORDER BY examId ASC, sortOrder ASC, questionId ASC")
+    fun observeExamQuestions(): Flow<List<ExamQuestionEntity>>
+
     @Query("SELECT value FROM sync_metadata WHERE key = :key LIMIT 1")
     fun observeMetadata(key: String): Flow<String?>
 
@@ -49,6 +57,18 @@ interface LearningContentDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertMetadata(item: SyncMetadataEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertExams(items: List<LearningExamEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertExamQuestions(items: List<ExamQuestionEntity>)
+
+    @Query("DELETE FROM exam_questions")
+    suspend fun clearExamQuestions()
+
+    @Query("DELETE FROM learning_exams")
+    suspend fun clearExams()
 
     @Query("DELETE FROM question_options")
     suspend fun clearOptions()
