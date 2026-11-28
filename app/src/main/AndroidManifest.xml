@@ -20,6 +20,10 @@
             android:exported="false"
             android:label="@string/practice_question_title" />
         <activity
+            android:name=".ui.learning.LearningProgressActivity"
+            android:exported="false"
+            android:label="@string/home_progress_title" />
+        <activity
             android:name=".ui.learning.LearningActivity"
             android:exported="false"
             android:label="@string/learning_subjects_title" />
