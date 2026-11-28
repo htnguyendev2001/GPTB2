@@ -9,6 +9,9 @@ import com.htanh.appvk.data.remote.sheets.LearningContentRemoteDataSource
 import com.htanh.appvk.data.remote.sheets.LearningContentSyncException
 import com.htanh.appvk.domain.learning.Chapter
 import com.htanh.appvk.domain.learning.LearningCatalog
+import com.htanh.appvk.domain.learning.LearningExam
+import com.htanh.appvk.domain.learning.ExamQuestion
+import com.htanh.appvk.domain.learning.ExamType
 import com.htanh.appvk.domain.learning.LearningQuestion
 import com.htanh.appvk.domain.learning.QuestionDifficulty
 import com.htanh.appvk.domain.learning.QuestionOption
@@ -44,6 +47,9 @@ class LearningContentRepositoryTest {
             assertEquals(45, cached.questions.single().estimatedTimeSeconds)
             assertEquals("A", cached.options.single().label)
             assertEquals("https://example.com/option.png", cached.options.single().imageUrl)
+            assertEquals("EXAM_01", cached.exams.single().id)
+            assertEquals(ExamType.EXAM, cached.exams.single().type)
+            assertEquals(10.0, cached.examQuestions.single().score, 0.0)
             assertTrue(cached.lastSuccessfulSyncAt != null)
         } finally {
             database.close()
@@ -68,7 +74,9 @@ class LearningContentRepositoryTest {
                 label = "A",
                 imageUrl = "https://example.com/option.png"
             )
-        )
+        ),
+        exams = listOf(LearningExam("EXAM_01", "Toán kiểm tra", "Đề mẫu", "SUBJ_MATH", 45, ExamType.EXAM, 10.0, true)),
+        examQuestions = listOf(ExamQuestion("EXAM_01", "Q_01", 1, 10.0))
     )
 
     private class FakeRemoteDataSource(
