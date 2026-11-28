@@ -45,9 +45,9 @@
     <string name="exam_result_score">Điểm tự động: %1$.2f / %2$.2f</string>
     <string name="exam_result_summary">Đúng: %1$d câu\nSai: %2$d câu\nChưa trả lời: %3$d câu</string>
     <string name="exam_result_pending_essays">Có %1$d câu tự luận đang chờ giáo viên chấm. Điểm cuối cùng sẽ được cập nhật sau.</string>
-    <string name="exam_result_no_pending_essays">Bài làm đã được chấm tự động hoàn tất.</string>
+    <string name="exam_result_no_pending_essays">Phần trắc nghiệm đã được chấm tự động.</string>
     <string name="exam_result_auto_submitted">Bài đã được tự động nộp khi hết giờ.</string>
-    <string name="exam_result_submitted">Bài làm đã được ghi nhận.</string>
+    <string name="exam_result_submitted">Em đã hoàn thành bài làm. Anh ghi nhận nỗ lực của em nhé.</string>
     <string name="exam_result_close">Hoàn tất</string>
     <string name="exam_essay_notice">Câu trả lời tự luận sẽ được lưu và chuyển đến giáo viên để chấm sau khi em nộp bài.</string>
     <string name="exam_attempt_save_failed">Không thể lưu lượt làm bài lên Firestore. Hãy kiểm tra cấu hình và quyền truy cập.</string>
@@ -75,5 +75,5 @@
     <string name="practice_essay_draft_notice">Bài viết hiện mới được giữ tạm trên màn hình này, chưa thể lưu hoặc nộp. Anh sẽ bổ sung chức năng đó khi hồ sơ người dùng được tích hợp nhé.</string>
     <string name="progress_loading">Đang tải tổng quan học liệu…</string>
     <string name="progress_catalog_summary">Kho học tập hiện có:\n• %1$d môn học\n• %2$d chương\n• %3$d chủ đề\n• %4$d câu hỏi</string>
-    <string name="progress_not_tracking">Lưu ý: Đây là thống kê nội dung có sẵn, chưa phải số liệu hoàn thành của bạn. Lịch sử làm bài, thời gian học và chuỗi ngày học liên tiếp chưa được ghi nhận ở phiên bản hiện tại.</string>
+    <string name="progress_not_tracking">Lưu ý: Đây là thống kê nội dung có sẵn, chưa phải số liệu hoàn thành của bạn. Lịch sử làm bài đã có thể được lưu theo tài khoản Firebase; màn hình tổng quan cá nhân, thời gian học và chuỗi ngày học sẽ được tích hợp ở bước tiếp theo.</string>
 </resources>
