@@ -232,6 +232,32 @@ class LearningCatalogParserTest {
         assertFalse(catalog.options.first { it.id == "OPT_B" }.isCorrect)
     }
 
+    @Test(expected = CatalogValidationException::class)
+    fun rejectsExamQuestionThatReferencesUnknownExam() {
+        val tables = validTables().toMutableMap()
+        tables[LearningCatalogParser.EXAM_QUESTIONS] = table(
+            LearningCatalogParser.EXAM_QUESTIONS,
+            listOf(
+                listOf("exam_id", "question_id", "sort_order", "score"),
+                listOf("UNKNOWN_EXAM", "Q_01", "1", "10")
+            )
+        )
+        LearningCatalogParser.parse(tables)
+    }
+
+    @Test(expected = CatalogValidationException::class)
+    fun rejectsExamQuestionThatReferencesUnknownQuestion() {
+        val tables = validTables().toMutableMap()
+        tables[LearningCatalogParser.EXAM_QUESTIONS] = table(
+            LearningCatalogParser.EXAM_QUESTIONS,
+            listOf(
+                listOf("exam_id", "question_id", "sort_order", "score"),
+                listOf("EXAM_TEST", "UNKNOWN_QUESTION", "1", "10")
+            )
+        )
+        LearningCatalogParser.parse(tables)
+    }
+
     private fun validTables(
         questions: List<List<String>> = listOf(
             listOf("question_id", "topic_id", "question_type", "content"),
