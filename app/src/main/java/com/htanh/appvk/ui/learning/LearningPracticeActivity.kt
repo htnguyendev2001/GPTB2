@@ -190,7 +190,9 @@ class LearningPracticeActivity : AppCompatActivity() {
         if (sessionInitialized) return
         sessionInitialized = true
         val duration = intent.getIntExtra(EXTRA_DURATION_MINUTES, 0)
-        deadlineAtEpochMillis = if (isTimedExam && duration > 0) System.currentTimeMillis() + duration * 60_000L else null
+        val durationDeadline = if (isTimedExam && duration > 0) System.currentTimeMillis() + duration * 60_000L else null
+        val scheduledEnd = if (isExam) ExamSessionRules.parseInstant(intent.getStringExtra(EXTRA_END_AT))?.toEpochMilli() else null
+        deadlineAtEpochMillis = listOfNotNull(durationDeadline, scheduledEnd).minOrNull()
 
         if (isLearningSession) {
             val repository = attemptRepository
@@ -211,7 +213,8 @@ class LearningPracticeActivity : AppCompatActivity() {
                         ),
                         questionIds = questionIds,
                         questionScores = examQuestionScores,
-                        questionTypes = questionIds.mapNotNull { id -> catalogQuestions[id]?.first?.let { id to it.type.name } }.toMap()
+                        questionTypes = questionIds.mapNotNull { id -> catalogQuestions[id]?.first?.let { id to it.type.name } }.toMap(),
+                        sessionEndAtEpochMillis = scheduledEnd
                     )
                 }.onSuccess { started ->
                     attemptId = started.id
@@ -500,6 +503,7 @@ class LearningPracticeActivity : AppCompatActivity() {
         const val EXTRA_DURATION_MINUTES = "com.htanh.appvk.extra.DURATION_MINUTES"
         const val EXTRA_EXAM_ID = "com.htanh.appvk.extra.EXAM_ID"
         const val EXTRA_TOTAL_SCORE = "com.htanh.appvk.extra.TOTAL_SCORE"
+        const val EXTRA_END_AT = "com.htanh.appvk.extra.END_AT"
 
         private const val STATE_ATTEMPT_ID = "attempt_id"
         private const val STATE_DEADLINE = "deadline_at"
