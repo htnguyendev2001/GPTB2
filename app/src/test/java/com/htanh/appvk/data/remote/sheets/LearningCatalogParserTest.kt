@@ -206,7 +206,14 @@ class LearningCatalogParserTest {
                     listOf("OPT_A", "Q_01", "A", "TRUE"),
                     listOf("OPT_B", "Q_01", "B", "FALSE")
                 )
-            )
+            ),
+            LearningCatalogParser.EXAMS to table(LearningCatalogParser.EXAMS, listOf(
+                listOf("exam_id", "name", "subject_id", "duration_minutes", "exam_type", "total_score", "is_active"),
+                listOf("EXAM_01", "Test", "SUBJ_MATH", "30", "EXAM", "10", "TRUE")
+            )),
+            LearningCatalogParser.EXAM_QUESTIONS to table(LearningCatalogParser.EXAM_QUESTIONS, listOf(
+                listOf("exam_id", "question_id", "sort_order", "score"), listOf("EXAM_01", "Q_01", "1", "10")
+            ))
         )
 
         LearningCatalogParser.parse(tables)
@@ -244,7 +251,15 @@ class LearningCatalogParserTest {
             listOf(listOf("topic_id", "chapter_id", "name"), listOf("TOP_01", "CH_01", "Phép cộng"))
         ),
         LearningCatalogParser.QUESTIONS to table(LearningCatalogParser.QUESTIONS, questions),
-        LearningCatalogParser.QUESTION_OPTIONS to table(LearningCatalogParser.QUESTION_OPTIONS, options)
+        LearningCatalogParser.QUESTION_OPTIONS to table(LearningCatalogParser.QUESTION_OPTIONS, options),
+        LearningCatalogParser.EXAMS to table(LearningCatalogParser.EXAMS, listOf(
+            listOf("exam_id", "name", "subject_id", "duration_minutes", "exam_type", "total_score", "is_active"),
+            listOf("EXAM_TEST", "Luyện tập", "SUBJ_MATH", "0", "PRACTICE", "10", "TRUE")
+        )),
+        LearningCatalogParser.EXAM_QUESTIONS to table(LearningCatalogParser.EXAM_QUESTIONS, listOf(
+            listOf("exam_id", "question_id", "sort_order", "score"),
+            listOf("EXAM_TEST", questions.getOrNull(1)?.firstOrNull() ?: "Q_01", "1", "10")
+        ))
     )
 
     private fun table(tabName: String, rows: List<List<String>>) =
