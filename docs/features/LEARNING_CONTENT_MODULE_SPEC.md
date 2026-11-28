@@ -480,7 +480,7 @@ HTVAData/{uid}/
 - `LEARNING_ATTEMPTS`: one parent record for every EXAM/PRACTICE session; includes status, timing, question IDs, per-question scores and automatic result summary.
 - `ANSWERS`: one document per question with selected option or essay draft.
 - `ESSAY_ATTEMPTS`: one parent record only when the session contains ESSAY questions.
-- `ESSAY_SUBMISSIONS`: one document per answered ESSAY question. Draft status is `DRAFT`; final submission status is `PENDING_REVIEW`. Teacher grading fields include `awarded_score`, `teacher_feedback`, `graded_at` and `status`.
+- `ESSAY_SUBMISSIONS`: one document per answered ESSAY question. Draft status is `DRAFT`; final submission status is `PENDING_REVIEW`; blank essay questions are retained as `NOT_SUBMITTED`. Teacher grading fields include `awarded_score`, `teacher_feedback`, `graded_at` and `status`.
 - Firestore rules must enforce `request.auth.uid == uid` for every document under `HTVAData/{uid}`. The repository includes `firestore.rules` with this ownership check.
 - The app never writes learner answers, attempts or results to the public Google Spreadsheet.
 
