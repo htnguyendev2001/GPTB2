@@ -5,7 +5,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.button.MaterialButton
+import com.google.android.material.appbar.MaterialToolbar
 import com.htanh.appvk.HtavkApplication
 import com.htanh.appvk.R
 import com.htanh.appvk.ui.applySystemBarInsets
@@ -17,7 +17,8 @@ class LearningProgressActivity : AppCompatActivity() {
         setContentView(R.layout.activity_learning_progress)
         applySystemBarInsets(findViewById(R.id.progressRoot))
 
-        findViewById<MaterialButton>(R.id.btnProgressBack).setOnClickListener { finish() }
+        findViewById<MaterialToolbar>(R.id.progressToolbar)
+            .setNavigationOnClickListener { finish() }
         val summary = findViewById<TextView>(R.id.tvProgressSummary)
         val notice = findViewById<TextView>(R.id.tvProgressNotice)
 
