@@ -3,9 +3,6 @@ package com.htanh.appvk
 import android.app.Application
 import androidx.room.Room
 import com.google.firebase.FirebaseApp
-import com.google.firebase.appcheck.FirebaseAppCheck
-import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
-import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.firestore.FirebaseFirestore
 import com.htanh.appvk.data.local.LearningDatabase
 import com.htanh.appvk.data.remote.sheets.GoogleSheetsRemoteDataSource
@@ -42,13 +39,7 @@ class HtavkApplication : Application() {
         examHistoryStore = ExamHistoryStore(applicationContext)
         val firebaseApp = FirebaseApp.initializeApp(applicationContext)
         val firestore = if (firebaseApp != null) {
-            val appCheck = FirebaseAppCheck.getInstance(firebaseApp)
-            val providerFactory = if (BuildConfig.DEBUG) {
-                DebugAppCheckProviderFactory.getInstance()
-            } else {
-                PlayIntegrityAppCheckProviderFactory.getInstance()
-            }
-            appCheck.installAppCheckProviderFactory(providerFactory)
+            AppCheckProviderInstaller.install(firebaseApp)
             FirebaseFirestore.getInstance(firebaseApp)
         } else {
             null
