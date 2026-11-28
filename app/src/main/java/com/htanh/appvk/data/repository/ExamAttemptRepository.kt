@@ -48,7 +48,7 @@ class ExamAttemptRepository(
             "question_ids" to questionIds,
             "question_scores" to questionScores,
             "maximum_score" to exam.totalScore,
-            "grading_status" to "NOT_REQUIRED"
+            "grading_status" to if (questionTypes.values.any { it == "ESSAY" }) "PENDING_REVIEW" else "NOT_REQUIRED"
         )
         val root = userRoot()
         val batch = firestore.batch()
@@ -170,7 +170,7 @@ class ExamAttemptRepository(
                 "incorrect_count" to result.incorrectCount,
                 "unanswered_count" to result.unansweredCount,
                 "pending_essay_count" to result.pendingEssayCount,
-                "grading_status" to if (result.gradingPending) "PENDING_REVIEW" else "GRADED",
+                "grading_status" to when { result.pendingEssayCount > 0 -> "PENDING_REVIEW"; questionTypes.values.any { it == "ESSAY" } -> "NO_SUBMISSIONS"; else -> "GRADED" },
                 "updated_at" to FieldValue.serverTimestamp()
             )
         )
