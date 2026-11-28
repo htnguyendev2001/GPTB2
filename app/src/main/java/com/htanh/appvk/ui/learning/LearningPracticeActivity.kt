@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.htanh.appvk.HtavkApplication
 import com.htanh.appvk.R
@@ -29,7 +30,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 class LearningPracticeActivity : AppCompatActivity() {
-    private lateinit var questionTitle: TextView
+    private lateinit var toolbar: MaterialToolbar
     private lateinit var questionMetadata: TextView
     private lateinit var questionContent: TextView
     private lateinit var questionImage: ImageView
@@ -58,7 +59,7 @@ class LearningPracticeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_learning_practice)
         applySystemBarInsets(findViewById(R.id.practiceRoot))
 
-        questionTitle = findViewById(R.id.tvPracticeTitle)
+        toolbar = findViewById(R.id.practiceToolbar)
         questionMetadata = findViewById(R.id.tvPracticeMetadata)
         questionContent = findViewById(R.id.tvPracticeContent)
         questionImage = findViewById(R.id.ivPracticeQuestionImage)
@@ -76,7 +77,7 @@ class LearningPracticeActivity : AppCompatActivity() {
         questionIds = suppliedIds.distinct().ifEmpty { listOfNotNull(startQuestionId) }
         currentIndex = questionIds.indexOf(startQuestionId).takeIf { it >= 0 } ?: 0
 
-        findViewById<MaterialButton>(R.id.btnPracticeBack).setOnClickListener { finish() }
+        toolbar.setNavigationOnClickListener { finish() }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() = finish()
         })
@@ -154,7 +155,6 @@ class LearningPracticeActivity : AppCompatActivity() {
         currentQuestion = question
         currentOptions = options
         selectedOptionId = selectedAnswers[question.id]
-        questionTitle.text = getString(R.string.practice_question_title)
         questionMetadata.visibility = View.VISIBLE
         questionMetadata.text = getString(
             R.string.practice_question_metadata,
@@ -272,7 +272,6 @@ class LearningPracticeActivity : AppCompatActivity() {
         selectedOptionId = null
         optionsGroup.removeAllViews()
         feedback.visibility = View.GONE
-        questionTitle.text = getString(R.string.practice_question_title)
         questionContent.text = message
         questionMetadata.visibility = View.GONE
         optionsGroup.visibility = View.GONE
