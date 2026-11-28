@@ -258,6 +258,32 @@ class LearningCatalogParserTest {
         LearningCatalogParser.parse(tables)
     }
 
+    @Test(expected = CatalogValidationException::class)
+    fun rejectsMalformedExamStartTimestamp() {
+        val tables = validTables().toMutableMap()
+        tables[LearningCatalogParser.EXAMS] = table(
+            LearningCatalogParser.EXAMS,
+            listOf(
+                listOf("exam_id", "name", "subject_id", "duration_minutes", "exam_type", "total_score", "is_active", "start_at"),
+                listOf("EXAM_TEST", "Luyện tập", "SUBJ_MATH", "30", "EXAM", "10", "TRUE", "tomorrow")
+            )
+        )
+        LearningCatalogParser.parse(tables)
+    }
+
+    @Test(expected = CatalogValidationException::class)
+    fun rejectsExamWindowWhenStartIsNotBeforeEnd() {
+        val tables = validTables().toMutableMap()
+        tables[LearningCatalogParser.EXAMS] = table(
+            LearningCatalogParser.EXAMS,
+            listOf(
+                listOf("exam_id", "name", "subject_id", "duration_minutes", "exam_type", "total_score", "is_active", "start_at", "end_at"),
+                listOf("EXAM_TEST", "Luyện tập", "SUBJ_MATH", "30", "EXAM", "10", "TRUE", "2026-11-28T11:00:00Z", "2026-11-28T10:00:00Z")
+            )
+        )
+        LearningCatalogParser.parse(tables)
+    }
+
     private fun validTables(
         questions: List<List<String>> = listOf(
             listOf("question_id", "topic_id", "question_type", "content"),
