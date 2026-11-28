@@ -457,7 +457,7 @@ A question may be reused by multiple exams/practice sets. The pair (exam_id, que
 ### Session behavior
 
 - Selecting an EXAM or PRACTICE definition creates a session attempt when Firebase is configured and the user is authenticated.
-- EXAM sessions with a positive `duration_minutes` calculate an absolute deadline at session start. The UI displays a countdown derived from that deadline, so pausing/resuming the Activity does not reset the clock. When the deadline is reached, the app submits automatically.
+- EXAM sessions with a positive `duration_minutes` calculate an absolute deadline at session start. If `end_at` is earlier than the duration deadline, `end_at` becomes the hard deadline. The UI displays a countdown derived from that deadline, so pausing/resuming the Activity does not reset the clock. When the deadline is reached, the app submits automatically.
 - The deadline is currently based on the device clock. This is not a tamper-resistant timer; a trusted server deadline would require a backend/Cloud Function and is outside the approved architecture.
 - `start_at` and `end_at` are ISO-8601 timestamps with an explicit timezone/UTC offset. The opening interval is inclusive at start and exclusive at end. Invalid timestamps or a start timestamp not earlier than end timestamp make the definition unavailable.
 - Availability is rechecked when the learner taps the item, not only when the list is rendered. A not-yet-open row remains tappable to show its opening-state message and can start without requiring a catalogue refresh once the time window begins.
