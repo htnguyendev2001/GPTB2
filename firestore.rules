@@ -56,7 +56,7 @@ service cloud.firestore {
         && request.resource.data.status in ["DRAFT", "PENDING_REVIEW", "NOT_SUBMITTED"];
       allow update: if validDeviceWrite(deviceId)
         && resource.data.device_id == deviceId
-        && resource.data.status in ["DRAFT", "PENDING_REVIEW", "NOT_SUBMITTED"]
+        && resource.data.status == "DRAFT"
         && request.resource.data.awarded_score == null
         && request.resource.data.graded_at == null
         && request.resource.data.teacher_feedback == null
