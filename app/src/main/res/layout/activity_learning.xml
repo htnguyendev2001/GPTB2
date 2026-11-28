@@ -54,6 +54,14 @@
                 android:text="@string/learning_refresh" />
         </LinearLayout>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOpenExams"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/learning_exams_open" />
+
         <ProgressBar
             android:id="@+id/learningProgress"
             style="?android:attr/progressBarStyleHorizontal"
