@@ -1,7 +1,9 @@
 # HTAVk — Learning Content Module Specification
 
 - Document ID: HTAVK-SPEC-LEARNING-001
-- Version: 1.1
+- Version: 1.2
+- Updated: 2026-11-28
+- Status: Implementation increment — exam/practice catalogue and mapping
 - Status: Implementation baseline; question practice UI in progress
 - Platform: Android native, Kotlin + XML
 - Application ID: `com.htanh.appvk`
@@ -13,13 +15,15 @@
 
 The Learning Content module loads the public learning catalogue from one Google Spreadsheet, validates it, maps it into typed Kotlin domain models, atomically replaces the local Room snapshot, and exposes cached content to the Android UI.
 
-The first implementation covers:
+The learning catalogue implementation covers:
 
 1. Subjects
 2. Chapters
 3. Topics
 4. Questions
 5. Question options
+6. Exam and practice definitions
+7. Ordered exam-question mappings
 
 The workbook contract also reserves tabs for app configuration, exams, exam-question mapping, badges, levels and missions. Those future domains are documented here but are not part of this first vertical slice.
 
@@ -129,12 +133,10 @@ One spreadsheet contains the following tabs. Tab names are case-sensitive. Heade
 
 ### 3.2 Reserved tabs for subsequent modules
 
-These tabs belong to the same workbook contract but are not read by the first implementation:
+These tabs belong to the workbook contract but are not read by this learning-content increment:
 
 - GUIDE: workbook editing instructions and schema version.
 - APP_CONFIG: key/value configuration for content owners. It must not contain API keys, credentials or private user data.
-- EXAMS: exam metadata.
-- EXAM_QUESTIONS: ordered mapping between exams and questions.
 - BADGES: public badge definitions.
 - LEVELS: public level thresholds.
 - MISSIONS: public mission definitions.
@@ -172,6 +174,8 @@ Use Google Sheets API v4 read-only `spreadsheets.values:batchGet` over HTTPS wit
 - `TOPICS!A:Z`
 - `QUESTIONS!A:Z`
 - `QUESTION_OPTIONS!A:Z`
+- `EXAMS!A:Z`
+- `EXAM_QUESTIONS!A:Z`
 
 The spreadsheet must be shared for public read access. The Android app must not request write scopes or ask the user to sign into Google to read this public catalogue.
 
@@ -208,7 +212,9 @@ Typed Kotlin models:
 - Topic(id, chapterId, name, description, sortOrder, isActive)
 - LearningQuestion(id, topicId, type, difficulty, content, explanation, points, sortOrder, isActive, imageUrl, estimatedTimeSeconds)
 - QuestionOption(id, questionId, text, isCorrect, sortOrder, label, imageUrl)
-- LearningCatalog(subjects, chapters, topics, questions, options)
+- LearningExam(id, name, description, subjectId, durationMinutes, type, totalScore, isActive, startAt, endAt)
+- ExamQuestion(examId, questionId, sortOrder, score)
+- LearningCatalog(subjects, chapters, topics, questions, options, exams, examQuestions)
 
 Room 2.7.2 is pinned for this implementation because the app retains minSdk 21; Room 2.8.x raises the minimum Android API to 23. The source `updated_at` value is informational and is not a version-history mechanism. v1 stores only the most recent valid snapshot.
 
@@ -265,7 +271,7 @@ A content refresh is all-or-nothing. Never clear Room before remote fetch and va
 
 ## 8. Room schema
 
-Database: `htavk_learning_content.db`, version 1.
+Database: `htavk_learning_content.db`, version 3.
 
 Tables:
 
@@ -274,6 +280,8 @@ Tables:
 - `topics`: primary key `id`, index on `chapterId`.
 - `learning_questions`: primary key `id`, index on `topicId`.
 - `question_options`: primary key `id`, index on `questionId`.
+- `learning_exams`: primary key `id`, foreign key to `subjects.id`.
+- `exam_questions`: composite primary key `(examId, questionId)`, foreign keys to `learning_exams.id` and `learning_questions.id`; index on `(examId, sortOrder)`.
 - `sync_metadata`: key/value metadata; v1 uses `last_successful_sync_at`.
 
 Room is the offline read source. Do not query Sheets directly from Activities or Views.
@@ -400,3 +408,45 @@ Room schema version 2 adds nullable columns for the new workbook metadata throug
 ### Learning media rendering
 
 The question practice screen renders `QUESTIONS.image_url` below the question prompt and `QUESTION_OPTIONS.image_url` alongside its option. The Kotlin image loader accepts HTTPS URLs only, uses 10-second connect/read timeouts, rejects non-image responses and downloads over 5 MiB, downsamples to a maximum 1280-pixel dimension, and uses a bounded in-memory LRU cache. Redirects and HTTP URLs are not followed. Images are not persisted to disk, so they are downloaded again after process restart. Device/emulator verification remains required. When a refreshed catalogue changes the current question or its options, the practice screen rebuilds the options and clears the stale selection; identical Room emissions do not discard the current feedback.
+
+
+## 13. Exam and practice catalogue increment (2026-11-28)
+
+The workbook's `EXAMS` and `EXAM_QUESTIONS` tabs are now part of the seven-tab public learning-content batch read. The app continues to read the spreadsheet only; all learner-specific attempts and answers remain outside the workbook.
+
+### EXAMS
+
+Workbook headers (case-insensitive, header order independent):
+
+| Column | Required | Mapping / validation |
+|---|---:|---|
+| exam_id | Yes | Stable unique exam identifier |
+| name | Yes | Display title |
+| description | No | Description shown in the exam/practice list |
+| subject_id | Yes | Must reference SUBJECTS.subject_id |
+| duration_minutes | Yes | Non-negative integer; EXAM requires a positive duration; PRACTICE may be zero |
+| exam_type | Yes | EXAM or PRACTICE |
+| total_score | Yes | Finite, non-negative number |
+| is_active | Yes | Boolean; inactive definitions are hidden from the list |
+| start_at | No | Retained as source text for future scheduling behavior |
+| end_at | No | Retained as source text for future scheduling behavior |
+
+### EXAM_QUESTIONS
+
+| Column | Required | Mapping / validation |
+|---|---:|---|
+| exam_id | Yes | Must reference EXAMS.exam_id |
+| question_id | Yes | Must reference QUESTIONS.question_id |
+| sort_order | Yes | Non-negative integer; controls question order within the selected exam/practice set |
+| score | Yes | Finite, non-negative number; overrides the generic question points for this session |
+
+A question may be reused by multiple exams/practice sets. The pair (exam_id, question_id) must be unique within EXAM_QUESTIONS. Each exam must contain at least one mapped question. The parser validates all references before Room is changed; an invalid exam row or mapping rejects the entire incoming catalogue and preserves the previous cache.
+
+### Local persistence and navigation
+
+- Room schema version 3 adds `learning_exams` and `exam_questions`, with a registered 2→3 migration; existing v1 databases migrate through 1→2→3.
+- Both tables are replaced in the same Room transaction as the five existing catalogue tables.
+- The Learning screen exposes a combined exam/practice list, labels each item by `exam_type`, and displays question count, total score and duration.
+- Selecting an item opens the existing question-session screen with question IDs ordered by `EXAM_QUESTIONS.sort_order`; per-session score comes from `EXAM_QUESTIONS.score`.
+- `start_at` and `end_at` are retained but not yet used to gate availability. A timed countdown, final exam submission/result screen and learner attempt-history persistence are separate follow-up work; this increment must not be represented as implementing those behaviors.
+- No learner identity, answer, attempt, score result or essay submission is read from or written to Google Sheets.
