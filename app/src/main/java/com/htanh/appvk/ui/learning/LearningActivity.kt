@@ -224,7 +224,7 @@ class LearningActivity : AppCompatActivity() {
                     ExamAvailability.ENDED -> "Đã hết hạn"
                     ExamAvailability.INVALID_SCHEDULE -> "Lịch mở bài không hợp lệ"
                 }
-                LearningListItem(exam.id, exam.name, exam.description, "$kind • $count câu • ${exam.totalScore} điểm$duration • $stateLabel", count > 0 && availability == ExamAvailability.AVAILABLE)
+                LearningListItem(exam.id, exam.name, exam.description, "$kind • $count câu • ${exam.totalScore} điểm$duration • $stateLabel", count > 0 && availability != ExamAvailability.INVALID_SCHEDULE && availability != ExamAvailability.ENDED)
             }
             LearningLevel.QUESTIONS -> catalog.questions
                 .filter { question ->
