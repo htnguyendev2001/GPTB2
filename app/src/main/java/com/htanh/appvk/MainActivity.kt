@@ -18,13 +18,13 @@ class MainActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.btnOpenLearning).setOnClickListener {
             startActivity(Intent(this, LearningActivity::class.java))
         }
-        findViewById<View>(R.id.cardPractice).setOnClickListener {
+        findViewById<View>(R.id.cardLearning).setOnClickListener {
             startActivity(
                 Intent(this, LearningActivity::class.java)
-                    .putExtra(LearningActivity.EXTRA_QUESTION_FILTER, LearningActivity.FILTER_ALL)
+                    .putExtra(LearningActivity.EXTRA_QUESTION_FILTER, LearningActivity.FILTER_MCQ)
             )
         }
-        findViewById<View>(R.id.cardEssay).setOnClickListener {
+        findViewById<View>(R.id.cardPractice).setOnClickListener {
             startActivity(
                 Intent(this, LearningActivity::class.java)
                     .putExtra(LearningActivity.EXTRA_QUESTION_FILTER, LearningActivity.FILTER_ESSAY)
