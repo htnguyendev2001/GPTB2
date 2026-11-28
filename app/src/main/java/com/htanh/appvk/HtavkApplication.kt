@@ -20,10 +20,10 @@ class HtavkApplication : Application() {
         ).addMigrations(LearningDatabase.MIGRATION_1_2).build()
 
         val remoteDataSource = GoogleSheetsRemoteDataSource(
+            context = applicationContext,
             spreadsheetId = BuildConfig.LEARNING_CONTENT_SPREADSHEET_ID,
             apiKey = BuildConfig.GOOGLE_SHEETS_API_KEY
         )
         learningContentRepository = LearningContentRepositoryImpl(database, remoteDataSource)
     }
-    
 }
