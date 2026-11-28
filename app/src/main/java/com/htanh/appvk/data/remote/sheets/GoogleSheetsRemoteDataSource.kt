@@ -50,7 +50,9 @@ class GoogleSheetsRemoteDataSource(
             "${LearningCatalogParser.CHAPTERS}!A:Z",
             "${LearningCatalogParser.TOPICS}!A:Z",
             "${LearningCatalogParser.QUESTIONS}!A:Z",
-            "${LearningCatalogParser.QUESTION_OPTIONS}!A:Z"
+            "${LearningCatalogParser.QUESTION_OPTIONS}!A:Z",
+            "${LearningCatalogParser.EXAMS}!A:Z",
+            "${LearningCatalogParser.EXAM_QUESTIONS}!A:Z"
         )
         val builder = Uri.parse("https://sheets.googleapis.com/v4/spreadsheets")
             .buildUpon()
