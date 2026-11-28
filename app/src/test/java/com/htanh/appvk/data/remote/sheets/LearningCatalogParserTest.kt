@@ -1,6 +1,7 @@
 package com.htanh.appvk.data.remote.sheets
 
 import com.htanh.appvk.domain.learning.QuestionType
+import com.htanh.appvk.domain.learning.ExamType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -86,6 +87,10 @@ class LearningCatalogParserTest {
         assertEquals("4", catalog.options.first { it.id == "OPT_A" }.text)
         assertEquals("A", catalog.options.first { it.id == "OPT_A" }.label)
         assertEquals("https://example.com/a.png", catalog.options.first { it.id == "OPT_A" }.imageUrl)
+        assertEquals(ExamType.EXAM, catalog.exams.single().type)
+        assertEquals("EXAM_01", catalog.examQuestions.single().examId)
+        assertEquals("Q_01", catalog.examQuestions.single().questionId)
+        assertEquals(10.0, catalog.examQuestions.single().score, 0.0)
     }
 
     @Test(expected = CatalogValidationException::class)
