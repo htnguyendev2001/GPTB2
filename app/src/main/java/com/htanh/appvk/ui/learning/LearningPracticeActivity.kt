@@ -72,7 +72,9 @@ class LearningPracticeActivity : AppCompatActivity() {
     private var sessionInitialized = false
     private var sessionSubmitted = false
 
-    private val isExam: Boolean get() = intent.getStringExtra(EXTRA_SESSION_TYPE) == "EXAM"
+    private val sessionType: String get() = intent.getStringExtra(EXTRA_SESSION_TYPE).orEmpty()
+    private val isExam: Boolean get() = sessionType == "EXAM"
+    private val isLearningSession: Boolean get() = sessionType == "EXAM" || sessionType == "PRACTICE"
     private val isTimedExam: Boolean get() = isExam && intent.getIntExtra(EXTRA_DURATION_MINUTES, 0) > 0
     private val examId: String get() = intent.getStringExtra(EXTRA_EXAM_ID).orEmpty()
 
@@ -190,7 +192,7 @@ class LearningPracticeActivity : AppCompatActivity() {
         val duration = intent.getIntExtra(EXTRA_DURATION_MINUTES, 0)
         deadlineAtEpochMillis = if (isTimedExam && duration > 0) System.currentTimeMillis() + duration * 60_000L else null
 
-        if (isExam) {
+        if (isLearningSession) {
             val repository = attemptRepository
             if (repository == null) {
                 Toast.makeText(this, R.string.exam_firebase_not_configured, Toast.LENGTH_LONG).show()
@@ -203,16 +205,20 @@ class LearningPracticeActivity : AppCompatActivity() {
                             description = "",
                             subjectId = "",
                             durationMinutes = duration,
-                            type = com.htanh.appvk.domain.learning.ExamType.EXAM,
+                            type = com.htanh.appvk.domain.learning.ExamType.valueOf(sessionType),
                             totalScore = intent.getDoubleExtra(EXTRA_TOTAL_SCORE, 0.0),
                             isActive = true
                         ),
                         questionIds = questionIds,
-                        questionScores = examQuestionScores
+                        questionScores = examQuestionScores,
+                        questionTypes = questionIds.mapNotNull { id -> catalogQuestions[id]?.first?.let { id to it.type.name } }.toMap()
                     )
                 }.onSuccess { started ->
                     attemptId = started.id
                     deadlineAtEpochMillis = started.deadlineAtEpochMillis ?: deadlineAtEpochMillis
+                    started.persistenceTask.addOnFailureListener {
+                        Toast.makeText(applicationContext, R.string.exam_attempt_save_failed, Toast.LENGTH_LONG).show()
+                    }
                 }.onFailure {
                     Toast.makeText(this, R.string.exam_auth_required, Toast.LENGTH_LONG).show()
                 }
@@ -259,6 +265,7 @@ class LearningPracticeActivity : AppCompatActivity() {
     }
 
     private fun saveCurrentDraft(persistRemotely: Boolean = true) {
+        if (sessionSubmitted) return
         val question = currentQuestion ?: return
         val answer = if (question.type == QuestionType.ESSAY) {
             SessionAnswer(question.id, essayText = essayAnswer.text?.toString().orEmpty())
@@ -268,7 +275,7 @@ class LearningPracticeActivity : AppCompatActivity() {
                 .also { selectedOptionId?.let { selectedAnswers[question.id] = it } }
         }
         val id = attemptId
-        if (persistRemotely && isExam && id != null) {
+        if (persistRemotely && isLearningSession && id != null) {
             attemptRepository?.saveAnswer(
                 id, examId, answer, question.type.name, examQuestionScores[question.id] ?: question.points
             )?.addOnFailureListener {
@@ -302,7 +309,7 @@ class LearningPracticeActivity : AppCompatActivity() {
         optionsGroup.visibility = if (isEssay) View.GONE else View.VISIBLE
         essayAnswer.visibility = if (isEssay) View.VISIBLE else View.GONE
         essayNotice.visibility = if (isEssay) View.VISIBLE else View.GONE
-        essayNotice.text = if (isExam) getString(R.string.exam_essay_notice) else getString(R.string.practice_essay_draft_notice)
+        essayNotice.text = getString(R.string.exam_essay_notice)
         essayAnswer.isEnabled = !sessionSubmitted
         checkButton.visibility = if (isEssay || isExam) View.GONE else View.VISIBLE
         essayAnswer.setText(essayDrafts[question.id].orEmpty())
@@ -429,9 +436,9 @@ class LearningPracticeActivity : AppCompatActivity() {
         }
         val result = ExamSessionRules.score(questions, options, answers.associateBy { it.questionId }, examQuestionScores)
         val attempt = attemptId
-        if (isExam && attempt != null) {
+        if (isLearningSession && attempt != null) {
             attemptRepository?.submitAttempt(
-                attempt, answers, questions.associate { it.id to it.type.name }, examQuestionScores, result, autoSubmitted
+                attempt, examId, answers, questions.associate { it.id to it.type.name }, examQuestionScores, result, autoSubmitted
             )?.addOnFailureListener {
                 Toast.makeText(applicationContext, R.string.exam_submit_save_failed, Toast.LENGTH_LONG).show()
             }
